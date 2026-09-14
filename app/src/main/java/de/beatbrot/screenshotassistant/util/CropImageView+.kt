@@ -1,11 +1,11 @@
 package de.beatbrot.screenshotassistant.util
 
 import android.graphics.Bitmap
-import com.theartofdev.edmodo.cropper.CropImageView
+import com.canhub.cropper.CropImageView
 
 fun CropImageView.tryExport(): Bitmap? {
     return try {
-        croppedImage
+        getCroppedImage()
     } catch (exception: Exception) {
         null
     }

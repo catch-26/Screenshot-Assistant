@@ -14,4 +14,5 @@
     <string name="done">Fertig</string>
     <string name="image_quality">Bildqualität</string>
     <string name="image_format">Format</string>
+    <string name="pick_color">Farbe wählen</string>
 </resources>

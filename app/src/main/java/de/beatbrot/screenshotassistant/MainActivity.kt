@@ -76,7 +76,7 @@ class MainActivity : AppCompatActivity() {
             popMenu.show()
         }
 
-        v.shareButton.setOnClickListener { viewModel.shareImage(v.cropView.croppedImage) }
+        v.shareButton.setOnClickListener { v.cropView.getCroppedImage()?.let { bitmap -> viewModel.shareImage(bitmap) } }
     }
 
     private fun initViewModel() {

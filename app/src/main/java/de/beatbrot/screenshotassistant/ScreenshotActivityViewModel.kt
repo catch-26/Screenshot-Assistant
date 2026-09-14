@@ -41,7 +41,7 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
 
     val drawStack = MutableLiveData<DrawStack>()
 
-    val cropRect = MutableLiveData<Rect>()
+    val cropRect = MutableLiveData<Rect?>()
 
     fun shareImage(croppedImage: Bitmap) {
         val croppedUri = getScreenshotUri(croppedImage)

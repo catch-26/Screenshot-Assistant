@@ -17,4 +17,5 @@
     <string name="image_quality">Image Quality</string>
     <string name="image_format">Image Format</string>
 
+    <string name="pick_color">Pick a color</string>
 </resources>

@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import java.util.*
 
 val Enum<Bitmap.CompressFormat>.mimeType
-    get() = "image/${name.toLowerCase(Locale.ROOT)}"
+    get() = "image/${name.lowercase(Locale.ROOT)}"
 
 val Enum<Bitmap.CompressFormat>.fileExtension
-    get() = name.toLowerCase(Locale.ROOT)
+    get() = name.lowercase(Locale.ROOT)

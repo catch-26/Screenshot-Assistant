@@ -10,7 +10,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.thebluealliance.spectrum.SpectrumDialog
 import de.beatbrot.imagepainter.view.ImagePainterView
 import de.beatbrot.screenshotassistant.R
 import de.beatbrot.screenshotassistant.databinding.SheetColorsettingsBinding
@@ -35,8 +34,6 @@ class DrawSettingsSheet : Fragment() {
 
     var onHideListener: (() -> Unit)? = null
 
-    private lateinit var colorPicker: SpectrumDialog.Builder
-
     private val viewModel by viewModels<DrawSettingsViewModel>()
 
     override fun onCreateView(i: LayoutInflater, root: ViewGroup?, state: Bundle?): View {
@@ -55,7 +52,6 @@ class DrawSettingsSheet : Fragment() {
                 return@Observer
             }
             v.colorButton.color = newValue
-            colorPicker.setSelectedColor(newValue)
             if (viewModel.editingMode.value == DrawMode.PEN) {
                 imagePainter?.strokeColor = newValue
             } else {
@@ -77,21 +73,6 @@ class DrawSettingsSheet : Fragment() {
         v.undoButton.isEnabled = imagePainter?.canUndo() ?: false
         v.redoButton.isEnabled = imagePainter?.canRedo() ?: false
 
-        colorPicker = SpectrumDialog.Builder(context).apply {
-            setTitle("Pick a color")
-            setDismissOnColorSelected(true)
-            setColors(R.array.colorPicker)
-            setOnColorSelectedListener { positiveResult, color ->
-                if (positiveResult) {
-                    if (viewModel.editingMode.value == DrawMode.PEN) {
-                        viewModel.penColor.postValue(color)
-                    } else if (viewModel.editingMode.value == DrawMode.MARKER) {
-                        viewModel.markerColor.postValue(color)
-                    }
-                }
-            }
-        }
-
         v.undoButton.setOnClickListener { imagePainter?.undo() }
         v.redoButton.setOnClickListener { imagePainter?.redo() }
         v.penSelector.setToggled(R.id.draw_mode, true)
@@ -105,11 +86,19 @@ class DrawSettingsSheet : Fragment() {
         }
 
         v.doneButton.setOnClickListener { onHideListener?.invoke() }
-        v.colorButton.setOnClickListener { colorPicker.show() }
+        v.colorButton.setOnClickListener { showColorPicker() }
     }
 
-    private fun SpectrumDialog.Builder.show() {
-        build().show(childFragmentManager, "COLOR_PICKER")
+    private fun showColorPicker() {
+        val dialog = ColorPickerDialog()
+        dialog.onColorSelected = { color ->
+            if (viewModel.editingMode.value == DrawMode.PEN) {
+                viewModel.penColor.postValue(color)
+            } else if (viewModel.editingMode.value == DrawMode.MARKER) {
+                viewModel.markerColor.postValue(color)
+            }
+        }
+        dialog.show(childFragmentManager, "COLOR_PICKER")
     }
 
     private var FloatingActionButton.color: Int

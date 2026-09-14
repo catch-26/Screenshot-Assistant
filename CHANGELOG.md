@@ -1,3 +1,8 @@
+# 2.0.2 (2026-09-15)
+
+- 🔧 Build against current Android SDK (compileSdk/targetSdk 36, AGP 9.4, Gradle 9.6, JDK 17)
+- 📦 Replace unmaintained JCenter dependencies: Android Image Cropper → CanHub fork, Spectrum → built-in color picker
+
 # 2.0.1 (2019-09-19)
 
 - 💾 Save editor state accross configuration changes

@@ -6,7 +6,7 @@ import android.view.View
 import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction
 import androidx.test.espresso.ViewAssertion
-import com.theartofdev.edmodo.cropper.CropImageView
+import com.canhub.cropper.CropImageView
 import de.beatbrot.imagepainter.view.ImagePainterView
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers
@@ -45,7 +45,7 @@ fun draw() = object : ViewAction {
 
 fun checkCropSuccessful() = ViewAssertion { view, _ ->
     if (view is CropImageView) {
-        val bitmap = view.croppedImage
+        val bitmap = view.getCroppedImage()!!
 
         assertEquals(1920 / 2, bitmap.height)
     }

@@ -63,13 +63,13 @@ class AboutActivity : MaterialAboutActivity() {
 
     object ImageCropper : Library {
         override val name = "Android Image Cropper"
-        override val version = "2.8.0"
+        override val version = "4.7.0"
 
         override val license = R.string.apache_2
         override val licenseLink =
-            "https://github.com/ArthurHub/Android-Image-Cropper/blob/master/LICENSE.txt"
+            "https://github.com/CanHub/Android-Image-Cropper/blob/main/LICENSE.txt"
 
-        override val github = "ArthurHub/Android-Image-Cropper"
+        override val github = "CanHub/Android-Image-Cropper"
     }
 
     object MaterialAboutLibrary : Library {
