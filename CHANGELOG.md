@@ -1,9 +1,9 @@
 # 20261026 (2026-10-26)
 
-- 🆔 New app ID `de.user_mb.screenshotassistant`, signed with a new key
-- 🤖 Target Android 17 (API 37); requires Android 14 or newer
-- 🖼️ Save screenshots in the format chosen in settings (was always JPEG); default is PNG
-- 📅 Versions are now named by release date
+- Application ID is now `de.user_mb.screenshotassistant`. The FileProvider authority is derived from it, so the app installs alongside the original Screenshot Assistant.
+- Compile and target SDK 37 (Android 17). Minimum SDK 34 (Android 14).
+- Builds with Android Gradle Plugin 9: BuildConfig generation enabled, and the editing-mode `when` in `MainActivity` handles a null mode.
+- Version name is the release date (`YYYYMMDD`), version code `YYYYMMDDnn`.
 
 # 2.0.2 (2026-09-15)
 
