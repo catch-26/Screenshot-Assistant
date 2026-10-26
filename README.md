@@ -12,7 +12,7 @@ Take a screenshot with the assist gesture, then crop, draw on and share it.
 
 ## Install
 
-Download the APK from [Releases](https://github.com/user-mb/Screenshot-Assistant/releases). Requires Android 16 or newer.
+Download the APK from [Releases](https://github.com/user-mb/Screenshot-Assistant/releases). Requires Android 14 or newer.
 
 ## Setup
 
