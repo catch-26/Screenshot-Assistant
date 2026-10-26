@@ -17,8 +17,8 @@ import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
-const val AUTHORITY_NAME = "de.beatbrot.screenshotassistant.fileprovider"
-const val MIME_TYPE = "image/jpeg"
+val AUTHORITY_NAME = "${BuildConfig.APPLICATION_ID}.fileprovider"
+const val MIME_TYPE = "image/png"
 
 class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -58,7 +58,7 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
         val scrFile = createScreenshotFile()
 
         FileOutputStream(scrFile).use { stream ->
-            croppedImage.compress(Bitmap.CompressFormat.JPEG, imageQuality, stream)
+            croppedImage.compress(imageFormat, imageQuality, stream)
         }
 
         return FileProvider.getUriForFile(context, AUTHORITY_NAME, scrFile)

@@ -4,14 +4,14 @@ plugins {
 
 android {
     namespace 'de.beatbrot.screenshotassistant'
-    compileSdk 36
+    compileSdk 37
 
     defaultConfig {
-        applicationId "de.beatbrot.screenshotassistant"
-        minSdk 23
-        targetSdk 36
-        versionCode 4
-        versionName "2.0.2"
+        applicationId "de.user_mb.screenshotassistant"
+        minSdk 34
+        targetSdk 37
+        versionCode 2026102601
+        versionName "20261026"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
