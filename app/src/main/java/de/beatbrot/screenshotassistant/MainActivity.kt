@@ -91,6 +91,7 @@ class MainActivity : AppCompatActivity() {
                     v.imagePainter.setImageBitmap(newBitmap)
                     animateImageView(v.imagePainter)
                 }
+                null -> Unit
             }
         })
 
