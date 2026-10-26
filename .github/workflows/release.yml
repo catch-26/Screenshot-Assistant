@@ -1,7 +1,13 @@
 name: Release
 
+# Publishes a release when versionName in app/build.gradle has no tag yet:
+# on a push to master that bumps the version, on a pushed tag, or by hand.
+# Pushes that leave the version alone publish nothing.
+
 on:
   push:
+    branches:
+      - master
     tags:
       - '20*'
   workflow_dispatch:
@@ -9,9 +15,50 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
-  release:
+  check:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      release: ${{ steps.version.outputs.release }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Decide whether to release
+        id: version
+        run: |
+          VERSION_NAME=$(grep -oP 'versionName\s+"\K[^"]+' app/build.gradle)
+          echo "version=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            if [ "$VERSION_NAME" != "$GITHUB_REF_NAME" ]; then
+              echo "::error::Tag $GITHUB_REF_NAME does not match versionName $VERSION_NAME"
+              exit 1
+            fi
+            RELEASE=true
+          elif git rev-parse -q --verify "refs/tags/$VERSION_NAME" >/dev/null; then
+            if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+              echo "::error::Tag $VERSION_NAME already exists; bump versionName first"
+              exit 1
+            fi
+            echo "versionName $VERSION_NAME is already released; nothing to do"
+            RELEASE=false
+          else
+            RELEASE=true
+          fi
+          echo "release=$RELEASE" >> "$GITHUB_OUTPUT"
+
+  release:
+    needs: check
+    if: needs.check.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -21,20 +68,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Check tag matches versionName
-        run: |
-          VERSION_NAME=$(grep -oP 'versionName\s+"\K[^"]+' app/build.gradle)
-          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
-            if [ "$VERSION_NAME" != "$GITHUB_REF_NAME" ]; then
-              echo "Tag $GITHUB_REF_NAME does not match versionName $VERSION_NAME"
-              exit 1
-            fi
-          elif git rev-parse -q --verify "refs/tags/$VERSION_NAME" >/dev/null; then
-            echo "Tag $VERSION_NAME already exists; bump versionName first"
-            exit 1
-          fi
-          echo "VERSION=$VERSION_NAME" >> "$GITHUB_ENV"
 
       - name: Decode keystore
         env:
@@ -47,7 +80,18 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew assembleRelease --no-daemon
+        run: ./gradlew assembleRelease --no-daemon 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+
+      - name: Report build errors as annotation
+        if: failure()
+        run: |
+          {
+            grep -nE "What went wrong|^e: |error:|FAILURE|Could not|> " build.log | head -60
+            echo "----- tail -----"
+            tail -60 build.log
+          } > summary.txt
+          msg=$(sed -e 's/%/%25/g' summary.txt | sed -e ':a;N;$!ba;s/\n/%0A/g')
+          echo "::error title=Release build failed::$msg"
 
       - name: Collect release files
         run: |
