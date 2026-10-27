@@ -1,3 +1,7 @@
+# Unreleased
+
+- Fix the assist gesture showing nothing on Android 17: the assistant now declares that it uses the screenshot (`usesAssistData`, `usesAssistScreenshots`), and closes with a hint if the system sends no screenshot.
+
 # 20261026 (2026-10-26)
 
 - Application ID is now `de.user_mb.screenshotassistant`. The FileProvider authority is derived from it, so the app installs alongside the original Screenshot Assistant.
