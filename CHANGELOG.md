@@ -1,6 +1,10 @@
-# Unreleased
+# v26.10.5 (2026-10-27)
 
 - Start screen, About and log screens: removed the duplicate title bar. The digital assistant settings button now sits above a shorter restart-reminder switch, App info is gone and About is centered. The log appears in one go, already scrolled to the end.
+- Versions are now named vYY.MM.N, where N counts the releases within the month from 0.
+- Bump material from 1.12.0 to 1.14.0.
+- Bump fragment-ktx from 1.9.0 to 1.9.1.
+- Build with Android Gradle Plugin 9.4.1 and Gradle 9.8.2.
 
 # 20261027d (2026-10-27)
 
