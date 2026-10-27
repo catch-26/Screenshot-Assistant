@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Screenshot Assistant</string>
-    <string name="copyright" translatable="false">© beatbrot 2019</string>
+    <string name="copyright" translatable="false">© beatbrot 2019 · user-mb 2026</string>
     <string name="about">About</string>
     <string name="github" translatable="false">GitHub</string>
     <string name="apache_2" translatable="false">Apache 2.0</string>
@@ -28,4 +28,17 @@
     <string name="launcher_status_unknown">Screenshot Assistant is your digital assistant app.</string>
     <string name="launcher_screen_access">Allow screen access</string>
     <string name="no_screen_access">Screenshot Assistant may not see the screen. Open the app to allow screen access.</string>
+    <string name="version_value">Version %1$s</string>
+    <string name="launcher_logs">Show logs</string>
+    <string name="logs_title">Screenshot Assistant log</string>
+    <string name="logs_loading">Reading log…</string>
+    <string name="logs_refresh">Refresh</string>
+    <string name="logs_share">Share log</string>
+    <string name="logs_error">Could not read the log: %1$s</string>
+    <string name="about_project">Project</string>
+    <string name="about_libraries">Libraries</string>
+    <string name="about_source">Source code</string>
+    <string name="about_releases">Releases</string>
+    <string name="about_releases_subtitle">Signed APKs and changelog</string>
+    <string name="about_original">Based on</string>
 </resources>

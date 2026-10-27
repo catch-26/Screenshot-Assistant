@@ -3,5 +3,6 @@
     <color name="itemBackground">#121212</color>
     <color name="iconUnfocusedColor">#8A8A8A</color>
 
+    <color name="cardStroke">#33FFFFFF</color>
     <color name="disabledTextColor">#61FFFFFF</color>
 </resources>

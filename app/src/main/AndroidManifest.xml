@@ -24,10 +24,8 @@
             android:noHistory="true"
             android:theme="@style/AppTheme.Translucent" />
         <activity
-            android:name=".AboutActivity"
-            android:excludeFromRecents="true"
-            android:noHistory="true"
-            android:theme="@style/AppTheme.AboutDialog" />
+            android:name=".AboutActivity" />
+        <activity android:name=".LogActivity" />
 
         <service
             android:name=".voice.InteractionService"

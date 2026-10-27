@@ -1,3 +1,10 @@
+# 20261027c (2026-10-27)
+
+- "Show logs" on the start screen opens an in-app log viewer with Refresh and Share. Android has no public link to the system's per-app log screen.
+- New About page in the style of the start screen: version, source code, releases, the original project, license and libraries.
+- Removed the material-about-library dependency.
+- Android Image Cropper stays on 4.7.0, the latest release.
+
 # 20261027b (2026-10-27)
 
 - Launcher icon: the app now opens a start screen that shows whether it is the digital assistant app, with buttons for the digital assistant settings and the app info page (for logs).

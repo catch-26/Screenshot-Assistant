@@ -37,6 +37,8 @@ class LauncherActivity : AppCompatActivity() {
                 }
             }
         }
+        v.logsButton.setOnClickListener { startActivity(Intent(this, LogActivity::class.java)) }
+        v.header.versionText.text = getString(R.string.version_value, BuildConfig.VERSION_NAME)
         v.aboutButton.setOnClickListener { startActivity(Intent(this, AboutActivity::class.java)) }
     }
 

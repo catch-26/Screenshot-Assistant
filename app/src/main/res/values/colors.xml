@@ -12,6 +12,7 @@
     <color name="iconUnfocusedColor">#757575</color>
     <color name="itemBackground">#FFFFFF</color>
 
+    <color name="cardStroke">#1F000000</color>
     <color name="disabledTextColor">#61000000</color>
 
     <array name="colorPicker">

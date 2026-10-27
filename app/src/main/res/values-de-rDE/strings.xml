@@ -25,4 +25,17 @@
     <string name="launcher_status_unknown">Screenshot Assistant ist deine App für digitale Assistenten.</string>
     <string name="launcher_screen_access">Bildschirmzugriff erlauben</string>
     <string name="no_screen_access">Screenshot Assistant darf den Bildschirm nicht sehen. Öffne die App, um den Bildschirmzugriff zu erlauben.</string>
+    <string name="version_value">Version %1$s</string>
+    <string name="launcher_logs">Logs anzeigen</string>
+    <string name="logs_title">Screenshot Assistant Log</string>
+    <string name="logs_loading">Log wird gelesen…</string>
+    <string name="logs_refresh">Aktualisieren</string>
+    <string name="logs_share">Log teilen</string>
+    <string name="logs_error">Log konnte nicht gelesen werden: %1$s</string>
+    <string name="about_project">Projekt</string>
+    <string name="about_libraries">Bibliotheken</string>
+    <string name="about_source">Quellcode</string>
+    <string name="about_releases">Releases</string>
+    <string name="about_releases_subtitle">Signierte APKs und Changelog</string>
+    <string name="about_original">Basiert auf</string>
 </resources>

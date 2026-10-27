@@ -1,129 +1,48 @@
 package de.beatbrot.screenshotassistant
 
-import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
-import androidx.annotation.StringRes
-import com.danielstone.materialaboutlibrary.MaterialAboutActivity
-import com.danielstone.materialaboutlibrary.items.MaterialAboutActionItem
-import com.danielstone.materialaboutlibrary.items.MaterialAboutTitleItem
-import com.danielstone.materialaboutlibrary.model.MaterialAboutCard
-import com.danielstone.materialaboutlibrary.model.MaterialAboutList
+import android.view.ViewGroup
+import androidx.annotation.DrawableRes
+import androidx.appcompat.app.AppCompatActivity
+import de.beatbrot.screenshotassistant.databinding.ActivityAboutBinding
+import de.beatbrot.screenshotassistant.databinding.ItemLinkBinding
 
-class AboutActivity : MaterialAboutActivity() {
+class AboutActivity : AppCompatActivity() {
+    private lateinit var v: ActivityAboutBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        if (isNightModeActive) {
-            setTheme(R.style.AppTheme_AboutDialog_Dark)
-        } else {
-            setTheme(R.style.AppTheme_AboutDialog)
-        }
         super.onCreate(savedInstanceState)
-    }
+        v = ActivityAboutBinding.inflate(layoutInflater)
+        setContentView(v.root)
 
-    override fun getMaterialAboutList(context: Context): MaterialAboutList {
-        val mainCard = MaterialAboutCard.Builder()
-            .addItem(
-                MaterialAboutTitleItem(
-                    R.string.app_name,
-                    R.string.copyright,
-                    R.mipmap.ic_launcher_round
-                )
-            )
-            .addVersionItem(BuildConfig.VERSION_NAME)
-            .addGithubItem("beatbrot/ScreenshotAssistant")
-            .build()
+        v.header.versionText.text = getString(R.string.version_value, BuildConfig.VERSION_NAME)
 
-        return MaterialAboutList.Builder()
-            .addCard(mainCard)
-            .addCard(ImageCropper.createCard())
-            .addCard(MaterialAboutLibrary.createCard())
-            .build()
-    }
+        v.projectList.addLink(R.drawable.ic_github_gray_24dp, getString(R.string.about_source), "user-mb/Screenshot-Assistant", "https://github.com/user-mb/Screenshot-Assistant")
+        v.projectList.addLink(R.drawable.ic_info_outline_gray_24dp, getString(R.string.about_releases), getString(R.string.about_releases_subtitle), "https://github.com/user-mb/Screenshot-Assistant/releases")
+        v.projectList.addLink(R.drawable.ic_grade_unfocused_24dp, getString(R.string.about_original), "beatbrot/ScreenshotAssistant", "https://github.com/beatbrot/ScreenshotAssistant")
+        v.projectList.addLink(R.drawable.ic_book_gray_24dp, getString(R.string.license), getString(R.string.apache_2), "https://github.com/user-mb/Screenshot-Assistant/blob/master/LICENSE")
 
-    private val isNightModeActive: Boolean
-        get() {
-            val uiMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-            return uiMode == Configuration.UI_MODE_NIGHT_YES
+        for (library in libraries) {
+            v.libraryList.addLink(R.drawable.ic_book_gray_24dp, library.name, library.version, library.url)
         }
-
-    interface Library {
-        val name: String
-        val version: String
-
-        @get:StringRes
-        val license: Int
-
-        val licenseLink: String
-
-        val github: String
     }
 
-    object ImageCropper : Library {
-        override val name = "Android Image Cropper"
-        override val version = "4.7.0"
-
-        override val license = R.string.apache_2
-        override val licenseLink =
-            "https://github.com/CanHub/Android-Image-Cropper/blob/main/LICENSE.txt"
-
-        override val github = "CanHub/Android-Image-Cropper"
+    private fun ViewGroup.addLink(@DrawableRes icon: Int, title: String, subtitle: String, url: String) {
+        val item = ItemLinkBinding.inflate(layoutInflater, this, true)
+        item.icon.setImageResource(icon)
+        item.title.text = title
+        item.subtitle.text = subtitle
+        item.root.setOnClickListener { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
     }
 
-    object MaterialAboutLibrary : Library {
-        override val name = "material-about-library"
-        override val version = "2.4.2"
-        override val license = R.string.apache_2
-        override val licenseLink =
-            "https://github.com/daniel-stoneuk/material-about-library/blob/master/LICENSE"
-        override val github = "daniel-stoneuk/material-about-library"
-    }
+    private class Library(val name: String, val version: String, val url: String)
 
-    private fun Library.createCard() = MaterialAboutCard.Builder()
-        .title(name)
-        .addVersionItem(version)
-        .addLicenseItem(license, licenseLink)
-        .addGithubItem(github)
-        .build()
-
-    private fun MaterialAboutCard.Builder.addVersionItem(version: String): MaterialAboutCard.Builder {
-        addItem(
-            MaterialAboutActionItem(
-                baseContext.getString(R.string.version),
-                version,
-                baseContext.getDrawable(R.drawable.ic_info_outline_gray_24dp)
-            )
-        )
-        return this
-    }
-
-    private fun MaterialAboutCard.Builder.addLicenseItem(@StringRes license: Int, url: String): MaterialAboutCard.Builder {
-        addItem(
-            MaterialAboutActionItem(
-                R.string.license,
-                license,
-                R.drawable.ic_book_gray_24dp
-            ) { openUrl(url) }
-        )
-        return this
-    }
-
-    private fun MaterialAboutCard.Builder.addGithubItem(project: String): MaterialAboutCard.Builder {
-        addItem(
-            MaterialAboutActionItem(
-                baseContext.getString(R.string.github),
-                project,
-                baseContext.getDrawable(R.drawable.ic_github_gray_24dp)
-            ) { openUrl("http://github.com/$project") }
-        )
-        return this
-    }
-
-    private fun openUrl(url: String) {
-        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-    }
-
-    override fun getActivityTitle(): String = baseContext.getString(R.string.about)
+    private val libraries = listOf(
+        Library("Android Image Cropper", "4.7.0", "https://github.com/CanHub/Android-Image-Cropper"),
+        Library("ImagePainter", "3c3f2b9bcc", "https://github.com/beatbrot/ImagePainter"),
+        Library("ToggleButtonLayout", "1.3.0", "https://github.com/savvyapps/ToggleButtonLayout"),
+        Library("AndroidX, Material Components", "Jetpack", "https://developer.android.com/jetpack/androidx"),
+    )
 }
