@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.doOnNextLayout
 import de.beatbrot.screenshotassistant.databinding.ActivityLogsBinding
 import java.io.IOException
 import kotlin.concurrent.thread
@@ -23,12 +24,17 @@ class LogActivity : AppCompatActivity() {
     }
 
     private fun loadLog() {
-        v.logText.setText(R.string.logs_loading)
+        v.logScroll.visibility = View.INVISIBLE
+        v.logProgress.visibility = View.VISIBLE
         thread {
             val log = readLog()
             runOnUiThread {
                 v.logText.text = log
-                v.logScroll.post { v.logScroll.fullScroll(View.FOCUS_DOWN) }
+                v.logScroll.doOnNextLayout {
+                    v.logScroll.scrollTo(0, v.logText.height)
+                    v.logProgress.visibility = View.GONE
+                    v.logScroll.visibility = View.VISIBLE
+                }
             }
         }
     }

@@ -22,7 +22,6 @@
     <string name="launcher_status_inactive">Screenshot Assistant is not your digital assistant app yet.</string>
     <string name="launcher_hint">Pick it under Settings › Apps › Default apps › Digital assistant app, and turn on \"Use screenshot\" there.</string>
     <string name="launcher_assistant_settings">Open digital assistant settings</string>
-    <string name="launcher_app_info">Open app info</string>
     <string name="launcher_status_no_screen_access">Screenshot Assistant is your digital assistant app, but Android does not let it see the screen yet. Tap \"Allow screen access\".</string>
     <string name="launcher_status_screen_access_denied">Screenshot Assistant is your digital assistant app, but screen access was denied. Allow it in the digital assistant settings.</string>
     <string name="launcher_status_unknown">Screenshot Assistant is your digital assistant app.</string>
@@ -31,7 +30,6 @@
     <string name="version_value">Version %1$s</string>
     <string name="launcher_logs">Show logs</string>
     <string name="logs_title">Screenshot Assistant log</string>
-    <string name="logs_loading">Reading log…</string>
     <string name="logs_refresh">Refresh</string>
     <string name="logs_share">Share log</string>
     <string name="logs_error">Could not read the log: %1$s</string>
@@ -41,7 +39,7 @@
     <string name="about_releases">Releases</string>
     <string name="about_releases_subtitle">Signed APKs and changelog</string>
     <string name="about_original">Based on</string>
-    <string name="launcher_boot_check">After a restart, remind me if Screenshot Assistant is no longer the digital assistant app</string>
+    <string name="launcher_boot_check">Remind me after a restart if the assistant was reset</string>
     <string name="assistant_check_channel">Digital assistant check</string>
     <string name="assistant_check_title">Screenshot Assistant is no longer your assistant</string>
     <string name="assistant_check_text">Android reset the digital assistant app, often after a system update. Pick Screenshot Assistant again.</string>
