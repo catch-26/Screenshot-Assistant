@@ -38,4 +38,10 @@
     <string name="about_releases">Releases</string>
     <string name="about_releases_subtitle">Signierte APKs und Changelog</string>
     <string name="about_original">Basiert auf</string>
+    <string name="launcher_boot_check">Nach einem Neustart erinnern, wenn Screenshot Assistant nicht mehr die App für digitale Assistenten ist</string>
+    <string name="assistant_check_channel">Prüfung digitaler Assistent</string>
+    <string name="assistant_check_title">Screenshot Assistant ist nicht mehr dein Assistent</string>
+    <string name="assistant_check_text">Android hat die App für digitale Assistenten zurückgesetzt, oft nach einem Systemupdate. Wähle Screenshot Assistant erneut aus.</string>
+    <string name="assistant_check_open_settings">Einstellungen öffnen</string>
+    <string name="assistant_check_open_app">App öffnen</string>
 </resources>

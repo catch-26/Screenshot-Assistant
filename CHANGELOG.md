@@ -1,3 +1,7 @@
+# Unreleased
+
+- New option on the start screen: after a restart or an app update, check whether Screenshot Assistant is still the digital assistant app, and if not, show a notification with a button to the digital assistant settings. Turning it on asks for the notification permission.
+
 # 20261027c (2026-10-27)
 
 - "Show logs" on the start screen opens an in-app log viewer with Refresh and Share. Android has no public link to the system's per-app log screen.

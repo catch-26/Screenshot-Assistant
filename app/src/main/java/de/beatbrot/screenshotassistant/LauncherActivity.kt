@@ -1,6 +1,7 @@
 package de.beatbrot.screenshotassistant
 
-import android.app.role.RoleManager
+import android.Manifest
+import android.content.pm.PackageManager
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -9,6 +10,9 @@ import android.provider.Settings
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import de.beatbrot.screenshotassistant.boot.cancelAssistantNotification
+import de.beatbrot.screenshotassistant.boot.checkAssistantOnBoot
+import de.beatbrot.screenshotassistant.boot.isDefaultAssistant
 import de.beatbrot.screenshotassistant.databinding.ActivityLauncherBinding
 import de.beatbrot.screenshotassistant.util.ScreenContextAccess
 import de.beatbrot.screenshotassistant.util.screenContextAccess
@@ -16,6 +20,10 @@ import de.beatbrot.screenshotassistant.util.screenContextRequestIntent
 
 class LauncherActivity : AppCompatActivity() {
     private lateinit var v: ActivityLauncherBinding
+    private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        checkAssistantOnBoot = granted
+        v.bootCheckSwitch.isChecked = granted
+    }
     private val screenContextRequest = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { updateStatus() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,6 +45,14 @@ class LauncherActivity : AppCompatActivity() {
                 }
             }
         }
+        v.bootCheckSwitch.isChecked = checkAssistantOnBoot
+        v.bootCheckSwitch.setOnCheckedChangeListener { _, checked ->
+            if (checked && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                checkAssistantOnBoot = checked
+            }
+        }
         v.logsButton.setOnClickListener { startActivity(Intent(this, LogActivity::class.java)) }
         v.header.versionText.text = getString(R.string.version_value, BuildConfig.VERSION_NAME)
         v.aboutButton.setOnClickListener { startActivity(Intent(this, AboutActivity::class.java)) }
@@ -48,7 +64,8 @@ class LauncherActivity : AppCompatActivity() {
     }
 
     private fun updateStatus() {
-        val isAssistant = getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_ASSISTANT)
+        val isAssistant = isDefaultAssistant
+        if (isAssistant) cancelAssistantNotification()
         val access = if (isAssistant) screenContextAccess() else ScreenContextAccess.UNKNOWN
         v.statusText.setText(
             when {

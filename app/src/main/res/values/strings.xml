@@ -41,4 +41,10 @@
     <string name="about_releases">Releases</string>
     <string name="about_releases_subtitle">Signed APKs and changelog</string>
     <string name="about_original">Based on</string>
+    <string name="launcher_boot_check">After a restart, remind me if Screenshot Assistant is no longer the digital assistant app</string>
+    <string name="assistant_check_channel">Digital assistant check</string>
+    <string name="assistant_check_title">Screenshot Assistant is no longer your assistant</string>
+    <string name="assistant_check_text">Android reset the digital assistant app, often after a system update. Pick Screenshot Assistant again.</string>
+    <string name="assistant_check_open_settings">Open settings</string>
+    <string name="assistant_check_open_app">Open app</string>
 </resources>
