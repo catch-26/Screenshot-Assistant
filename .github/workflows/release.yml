@@ -97,8 +97,6 @@ jobs:
         run: |
           mkdir -p dist
           cp app/build/outputs/apk/release/app-release.apk "dist/ScreenshotAssistant-$VERSION.apk"
-          git archive --format=tar.gz --prefix="ScreenshotAssistant-$VERSION/" -o "dist/ScreenshotAssistant-$VERSION-source.tar.gz" "$GITHUB_SHA"
-          cd dist && sha256sum * > SHA256SUMS
 
       - name: Create GitHub release
         env:
