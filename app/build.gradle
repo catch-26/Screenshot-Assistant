@@ -10,8 +10,8 @@ android {
         applicationId "de.user_mb.screenshotassistant"
         minSdk 34
         targetSdk 37
-        versionCode 2026102601
-        versionName "20261026"
+        versionCode 2026102701
+        versionName "20261027"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {

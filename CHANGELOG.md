@@ -1,4 +1,4 @@
-# Unreleased
+# 20261027 (2026-10-27)
 
 - Fix the assist gesture showing nothing on Android 17: the assistant now declares that it uses the screenshot (`usesAssistData`, `usesAssistScreenshots`), and closes with a hint if the system sends no screenshot.
 
