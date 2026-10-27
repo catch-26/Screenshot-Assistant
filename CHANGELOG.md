@@ -1,3 +1,7 @@
+# Unreleased
+
+- Start screen, About and log screens: removed the duplicate title bar. The digital assistant settings button now sits above a shorter restart-reminder switch, App info is gone and About is centered. The log appears in one go, already scrolled to the end.
+
 # 20261027d (2026-10-27)
 
 - New option on the start screen: after a restart or an app update, check whether Screenshot Assistant is still the digital assistant app, and if not, show a notification with a button to the digital assistant settings. Turning it on asks for the notification permission.

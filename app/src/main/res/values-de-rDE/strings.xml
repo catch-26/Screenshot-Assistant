@@ -19,7 +19,6 @@
     <string name="launcher_status_inactive">Screenshot Assistant ist noch nicht deine App für digitale Assistenten.</string>
     <string name="launcher_hint">Wähle sie unter Einstellungen › Apps › Standard-Apps › App für digitale Assistenten und aktiviere dort \"Screenshot verwenden\".</string>
     <string name="launcher_assistant_settings">Assistenten-Einstellungen öffnen</string>
-    <string name="launcher_app_info">App-Info öffnen</string>
     <string name="launcher_status_no_screen_access">Screenshot Assistant ist deine App für digitale Assistenten, darf den Bildschirm aber noch nicht sehen. Tippe auf \"Bildschirmzugriff erlauben\".</string>
     <string name="launcher_status_screen_access_denied">Screenshot Assistant ist deine App für digitale Assistenten, aber der Bildschirmzugriff wurde abgelehnt. Erlaube ihn in den Assistenten-Einstellungen.</string>
     <string name="launcher_status_unknown">Screenshot Assistant ist deine App für digitale Assistenten.</string>
@@ -28,7 +27,6 @@
     <string name="version_value">Version %1$s</string>
     <string name="launcher_logs">Logs anzeigen</string>
     <string name="logs_title">Screenshot Assistant Log</string>
-    <string name="logs_loading">Log wird gelesen…</string>
     <string name="logs_refresh">Aktualisieren</string>
     <string name="logs_share">Log teilen</string>
     <string name="logs_error">Log konnte nicht gelesen werden: %1$s</string>
@@ -38,7 +36,7 @@
     <string name="about_releases">Releases</string>
     <string name="about_releases_subtitle">Signierte APKs und Changelog</string>
     <string name="about_original">Basiert auf</string>
-    <string name="launcher_boot_check">Nach einem Neustart erinnern, wenn Screenshot Assistant nicht mehr die App für digitale Assistenten ist</string>
+    <string name="launcher_boot_check">Nach Neustart erinnern, falls der Assistent zurückgesetzt wurde</string>
     <string name="assistant_check_channel">Prüfung digitaler Assistent</string>
     <string name="assistant_check_title">Screenshot Assistant ist nicht mehr dein Assistent</string>
     <string name="assistant_check_text">Android hat die App für digitale Assistenten zurückgesetzt, oft nach einem Systemupdate. Wähle Screenshot Assistant erneut aus.</string>

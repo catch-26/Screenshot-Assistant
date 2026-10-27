@@ -30,6 +30,11 @@
         <item name="android:backgroundDimEnabled">false</item>
     </style>
 
+    <style name="AppTheme.NoActionBar" parent="AppTheme">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
     <style name="AppTheme.Card" parent="Widget.MaterialComponents.CardView">
         <item name="cardCornerRadius">20dp</item>
         <item name="cardElevation">0dp</item>

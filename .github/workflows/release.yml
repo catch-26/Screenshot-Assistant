@@ -1,8 +1,10 @@
 name: Release
 
-# Publishes a release when versionName in app/build.gradle has no tag yet:
+# Publishes a release when versionCode in app/build.gradle has no tag yet:
 # on a push to master that bumps the version, on a pushed tag, or by hand.
 # Pushes that leave the version alone publish nothing.
+# The tag and release title are the versionCode (YYYYMMDDnn). Releases up to
+# 20261027d were tagged with the versionName; those tags count as released too.
 
 on:
   push:
@@ -24,29 +26,32 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      name: ${{ steps.version.outputs.name }}
       release: ${{ steps.version.outputs.release }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Decide whether to release
         id: version
         run: |
+          VERSION_CODE=$(grep -oP 'versionCode\s+\K[0-9]+' app/build.gradle)
           VERSION_NAME=$(grep -oP 'versionName\s+"\K[^"]+' app/build.gradle)
-          echo "version=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then
-            if [ "$VERSION_NAME" != "$GITHUB_REF_NAME" ]; then
-              echo "::error::Tag $GITHUB_REF_NAME does not match versionName $VERSION_NAME"
+            if [ "$VERSION_CODE" != "$GITHUB_REF_NAME" ]; then
+              echo "::error::Tag $GITHUB_REF_NAME does not match versionCode $VERSION_CODE"
               exit 1
             fi
             RELEASE=true
-          elif git rev-parse -q --verify "refs/tags/$VERSION_NAME" >/dev/null; then
+          elif git rev-parse -q --verify "refs/tags/$VERSION_CODE" >/dev/null || git rev-parse -q --verify "refs/tags/$VERSION_NAME" >/dev/null; then
             if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
-              echo "::error::Tag $VERSION_NAME already exists; bump versionName first"
+              echo "::error::Version $VERSION_CODE ($VERSION_NAME) is already tagged; bump versionCode first"
               exit 1
             fi
-            echo "versionName $VERSION_NAME is already released; nothing to do"
+            echo "Version $VERSION_CODE ($VERSION_NAME) is already released; nothing to do"
             RELEASE=false
           else
             RELEASE=true
@@ -59,12 +64,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ needs.check.outputs.version }}
+      VERSION_NAME: ${{ needs.check.outputs.name }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
@@ -97,12 +103,10 @@ jobs:
         run: |
           mkdir -p dist
           cp app/build/outputs/apk/release/app-release.apk "dist/ScreenshotAssistant-$VERSION.apk"
-          git archive --format=tar.gz --prefix="ScreenshotAssistant-$VERSION/" -o "dist/ScreenshotAssistant-$VERSION-source.tar.gz" "$GITHUB_SHA"
-          cd dist && sha256sum * > SHA256SUMS
 
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          awk -v tag="$VERSION" '/^# /{p=($2==tag)} p&&!/^# /' CHANGELOG.md > notes.md
+          awk -v code="$VERSION" -v name="$VERSION_NAME" '/^# /{p=($2==code||$2==name)} p&&!/^# /' CHANGELOG.md > notes.md
           gh release create "$VERSION" dist/* --target "$GITHUB_SHA" --title "$VERSION" --notes-file notes.md --generate-notes

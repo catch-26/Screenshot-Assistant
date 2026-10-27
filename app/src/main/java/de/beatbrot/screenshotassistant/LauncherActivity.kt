@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
@@ -33,9 +32,6 @@ class LauncherActivity : AppCompatActivity() {
 
         v.assistantSettingsButton.setOnClickListener {
             openSettings(Intent(Settings.ACTION_VOICE_INPUT_SETTINGS), Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
-        }
-        v.appInfoButton.setOnClickListener {
-            openSettings(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)))
         }
         v.screenAccessButton.setOnClickListener {
             screenContextRequestIntent()?.let {
