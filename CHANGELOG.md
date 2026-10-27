@@ -1,3 +1,10 @@
+# Unreleased
+
+- Launcher icon: the app now opens a start screen that shows whether it is the digital assistant app, with buttons for the digital assistant settings and the app info page (for logs).
+- Android 17: the start screen offers "Allow screen access" when Android has not given the assistant access to the screen yet. Without it the system sends no screenshot.
+- The screenshot editor is now started with `startAssistantActivity`, before the assistant window closes.
+- The assistant session logs its callbacks under the `ScreenshotAssistant` tag.
+
 # 20261027 (2026-10-27)
 
 - Fix the assist gesture showing nothing on Android 17: the assistant now declares that it uses the screenshot (`usesAssistData`, `usesAssistScreenshots`), and closes with a hint if the system sends no screenshot.

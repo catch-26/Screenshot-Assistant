@@ -15,4 +15,14 @@
     <string name="image_quality">Bildqualität</string>
     <string name="image_format">Format</string>
     <string name="pick_color">Farbe wählen</string>
+    <string name="launcher_status_active">Screenshot Assistant ist deine App für digitale Assistenten. Nutze die Assistenten-Geste, um einen Screenshot aufzunehmen.</string>
+    <string name="launcher_status_inactive">Screenshot Assistant ist noch nicht deine App für digitale Assistenten.</string>
+    <string name="launcher_hint">Wähle sie unter Einstellungen › Apps › Standard-Apps › App für digitale Assistenten und aktiviere dort \"Screenshot verwenden\".</string>
+    <string name="launcher_assistant_settings">Assistenten-Einstellungen öffnen</string>
+    <string name="launcher_app_info">App-Info öffnen</string>
+    <string name="launcher_status_no_screen_access">Screenshot Assistant ist deine App für digitale Assistenten, darf den Bildschirm aber noch nicht sehen. Tippe auf \"Bildschirmzugriff erlauben\".</string>
+    <string name="launcher_status_screen_access_denied">Screenshot Assistant ist deine App für digitale Assistenten, aber der Bildschirmzugriff wurde abgelehnt. Erlaube ihn in den Assistenten-Einstellungen.</string>
+    <string name="launcher_status_unknown">Screenshot Assistant ist deine App für digitale Assistenten.</string>
+    <string name="launcher_screen_access">Bildschirmzugriff erlauben</string>
+    <string name="no_screen_access">Screenshot Assistant darf den Bildschirm nicht sehen. Öffne die App, um den Bildschirmzugriff zu erlauben.</string>
 </resources>
