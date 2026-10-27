@@ -3,7 +3,9 @@ updates:
   - package-ecosystem: gradle
     directory: /
     schedule:
-      interval: weekly
+      interval: daily
+      time: "02:00"
+      timezone: Europe/Berlin
     groups:
       gradle:
         patterns:
@@ -12,6 +14,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+      day: wednesday
+      time: "02:00"
+      timezone: Europe/Berlin
     groups:
       actions:
         patterns:
