@@ -1,3 +1,7 @@
+# Unreleased
+
+- Log screen: the content now keeps the same 24dp margin as the other screens instead of running to the screen edge, so text is no longer cut off by rounded display corners.
+
 # v26.10.5 (2026-10-27)
 
 - Start screen, About and log screens: removed the duplicate title bar. The digital assistant settings button now sits above a shorter restart-reminder switch, App info is gone and About is centered. The log appears in one go, already scrolled to the end.
