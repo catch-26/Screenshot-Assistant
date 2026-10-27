@@ -1,4 +1,4 @@
-# Unreleased
+# 20261027b (2026-10-27)
 
 - Launcher icon: the app now opens a start screen that shows whether it is the digital assistant app, with buttons for the digital assistant settings and the app info page (for logs).
 - Android 17: the start screen offers "Allow screen access" when Android has not given the assistant access to the screen yet. Without it the system sends no screenshot.
