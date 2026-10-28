@@ -1,3 +1,18 @@
+# v26.10.12 (2026-10-29)
+
+- New application ID de.paradox.screenshotassistant. Android installs it as a new app next to the old one.
+- Editor: new Save button. It saves the cropped and drawn image to Pictures/Screenshots, or to a folder picked under "Save folder" on the start screen.
+- Editor: a format pill next to Save switches between PNG, JPEG and WEBP, with a quality slider, for the current screenshot.
+- Screenshot Assistant can be picked for "Edit" and "Edit with" on images from the share sheet, gallery and file apps.
+- Image format and quality moved from the editor's three-dot menu to a card on the start screen. The menu is gone.
+- New drawing tool built into the app: smoother strokes, full-resolution export, a 12-color palette, and pen and highlighter colors are remembered. Pen and highlighter are wider.
+- Editor buttons restyled. They hide while drawing, so Done is no longer covered.
+- Share while drawing shares the drawing, and the share sheet shows a preview.
+- Crop view: the area outside the crop window and the screen behind the editor are faded instead of darkened. After drawing, the image fits the crop view again instead of sitting in the top-left corner.
+- The launcher icon is labeled "Screenshot" so the name is no longer cut off.
+- Log screen keeps its margin on all sides.
+- Removed the ImagePainter and ToggleButtonLayout libraries.
+
 # v26.10.5 (2026-10-27)
 
 - Start screen, About and log screens: removed the duplicate title bar. The digital assistant settings button now sits above a shorter restart-reminder switch, App info is gone and About is centered. The log appears in one go, already scrolled to the end.

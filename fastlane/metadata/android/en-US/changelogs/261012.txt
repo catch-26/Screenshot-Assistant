@@ -1,0 +1,7 @@
+- New app ID de.paradox.screenshotassistant, installs as a new app.
+- Editor: Save button, and a format pill to switch PNG, JPEG or WEBP per screenshot.
+- Open images via "Edit" and "Edit with".
+- Format and quality moved to the start screen.
+- New built-in drawing tool with smoother strokes and a 12-color palette.
+- Restyled editor buttons, share preview, faded crop background.
+- Launcher label shortened to "Screenshot".
