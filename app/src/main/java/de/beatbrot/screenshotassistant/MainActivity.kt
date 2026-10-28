@@ -2,11 +2,12 @@ package de.beatbrot.screenshotassistant
 
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
@@ -33,9 +34,11 @@ class MainActivity : AppCompatActivity() {
         initUI()
         initViewModel()
 
-        val imgPath = intent.getParcelableExtra<Uri>("screenshot")
-        if (imgPath != null) {
-            loadInitialImage(imgPath)
+        val imgPath = when (intent.action) {
+            Intent.ACTION_EDIT -> intent.data
+            else -> intent.getParcelableExtra("screenshot", Uri::class.java)
+        }
+        if (imgPath != null && loadInitialImage(imgPath)) {
             viewModel.screenshot?.let { showBackground(it) }
         } else {
             Toast.makeText(baseContext, R.string.error_no_screenshot, Toast.LENGTH_SHORT).show()
@@ -207,16 +210,40 @@ class MainActivity : AppCompatActivity() {
         view.startAnimation(anim)
     }
 
-    private fun loadInitialImage(uri: Uri) {
-        if (viewModel.currentBitmap.value == null) {
-            val inputStream = contentResolver.openInputStream(uri)
-            val bitmap = BitmapFactory.decodeStream(inputStream)
-            viewModel.screenshot = bitmap
-            viewModel.currentBitmap.value = bitmap
+    private fun loadInitialImage(uri: Uri): Boolean {
+        if (viewModel.currentBitmap.value != null) {
+            return true
+        }
+        val bitmap = try {
+            decodeImage(uri)
+        } catch (e: Exception) {
+            Log.e(TAG, "Could not load image $uri", e)
+            return false
+        }
+        viewModel.screenshot = bitmap
+        viewModel.currentBitmap.value = bitmap
+        return true
+    }
+
+    // Images from other apps can be camera photos, so large ones are scaled down to keep the editor responsive.
+    private fun decodeImage(uri: Uri): Bitmap {
+        val source = ImageDecoder.createSource(contentResolver, uri)
+        return ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            val longSide = maxOf(info.size.width, info.size.height)
+            if (longSide > MAX_IMAGE_SIDE) {
+                val scale = MAX_IMAGE_SIDE.toFloat() / longSide
+                decoder.setTargetSize(
+                    (info.size.width * scale).toInt().coerceAtLeast(1),
+                    (info.size.height * scale).toInt().coerceAtLeast(1)
+                )
+            }
         }
     }
 
     private companion object {
+        const val TAG = "ScreenshotAssistant"
         const val BACKGROUND_FADE = 0.75F
+        const val MAX_IMAGE_SIDE = 4096
     }
 }

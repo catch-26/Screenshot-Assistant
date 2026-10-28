@@ -28,6 +28,17 @@
             android:excludeFromRecents="true"
             android:noHistory="true"
             android:theme="@style/AppTheme.Translucent" />
+        <activity-alias
+            android:name=".EditImageActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.EDIT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+        </activity-alias>
         <activity
             android:name=".AboutActivity"
             android:theme="@style/AppTheme.NoActionBar" />
