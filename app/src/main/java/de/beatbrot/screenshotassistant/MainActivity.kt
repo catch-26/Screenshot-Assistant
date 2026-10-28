@@ -3,14 +3,8 @@ package de.beatbrot.screenshotassistant
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
 import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
-import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -28,6 +22,7 @@ import de.beatbrot.screenshotassistant.databinding.ActivityMainBinding
 import de.beatbrot.screenshotassistant.sheets.ModalSettingsSheet
 import de.beatbrot.screenshotassistant.sheets.drawsettings.DrawSettingsSheet
 import de.beatbrot.screenshotassistant.util.OpenAnimationListener
+import de.beatbrot.screenshotassistant.util.fadeFilter
 import de.beatbrot.screenshotassistant.util.tryExport
 
 class MainActivity : AppCompatActivity() {
@@ -169,12 +164,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Shows the screenshot behind the editor, desaturated and darkened by the scrim.
+    // Shows the screenshot behind the editor, faded more than the cropper's cut-away area.
     private fun showBackground(screenshot: Bitmap) {
-        val faded = BitmapDrawable(resources, screenshot).apply {
-            colorFilter = ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(1F - BACKGROUND_SATURATION_REDUCTION) })
+        v.root.background = BitmapDrawable(resources, screenshot).apply {
+            colorFilter = fadeFilter(BACKGROUND_FADE)
         }
-        v.root.background = LayerDrawable(arrayOf<Drawable>(faded, ColorDrawable(Color.argb(SCRIM_ALPHA, 0, 0, 0))))
     }
 
     private fun animateImageView(imageView: View) {
@@ -243,7 +237,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private companion object {
-        const val SCRIM_ALPHA = 0x80
-        const val BACKGROUND_SATURATION_REDUCTION = 0.5F
+        const val BACKGROUND_FADE = 0.75F
     }
 }

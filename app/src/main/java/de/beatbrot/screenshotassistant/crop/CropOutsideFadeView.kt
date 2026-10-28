@@ -2,8 +2,6 @@ package de.beatbrot.screenshotassistant.crop
 
 import android.annotation.SuppressLint
 import android.graphics.Canvas
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Rect
@@ -15,9 +13,10 @@ import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import android.widget.ImageView
 import com.canhub.cropper.CropImageView
+import de.beatbrot.screenshotassistant.util.fadeFilter
 
 /**
- * Draws the image desaturated outside the crop window. It sits between the cropper's
+ * Draws the image faded outside the crop window. It sits between the cropper's
  * image and its crop overlay, so the frame and handles stay on top.
  */
 @SuppressLint("ViewConstructor")
@@ -26,7 +25,7 @@ class CropOutsideFadeView private constructor(private val cropView: CropImageVie
     private val image: ImageView = cropView.findViewById(com.canhub.cropper.R.id.ImageView_image)
 
     private val paint = Paint(Paint.FILTER_BITMAP_FLAG).apply {
-        colorFilter = ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(1F - SATURATION_REDUCTION) })
+        colorFilter = fadeFilter(FADE)
     }
 
     private val window = RectF()
@@ -71,7 +70,7 @@ class CropOutsideFadeView private constructor(private val cropView: CropImageVie
     }
 
     companion object {
-        const val SATURATION_REDUCTION = 0.5F
+        const val FADE = 0.5F
 
         fun attachTo(cropView: CropImageView) {
             cropView.addView(
