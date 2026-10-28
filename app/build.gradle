@@ -7,7 +7,7 @@ android {
     compileSdk 37
 
     defaultConfig {
-        applicationId "de.user_mb.screenshotassistant"
+        applicationId "de.paradox.screenshotassistant"
         minSdk 34
         targetSdk 37
         versionCode 261005
