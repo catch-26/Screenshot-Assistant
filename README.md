@@ -4,6 +4,7 @@
 <h3 align="center">Screenshot Assistant</h3>
 
 <p align="center">Take a screenshot with the assist gesture, then crop, draw on and share it.</p>
+<p align="center">Previous Images of the OG app:</p>
 
 <p align="center">
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2%20-%20cropped.png" width="30%">
