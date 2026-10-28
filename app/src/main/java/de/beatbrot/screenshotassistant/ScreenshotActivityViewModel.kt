@@ -1,6 +1,7 @@
 package de.beatbrot.screenshotassistant
 
 import android.app.Application
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -39,6 +40,8 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
 
     val currentBitmap = MutableLiveData<Bitmap>()
 
+    var screenshot: Bitmap? = null
+
     val drawStack = MutableLiveData<DrawStack>()
 
     val cropRect = MutableLiveData<Rect?>()
@@ -49,6 +52,8 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = imageFormat.mimeType
             putExtra(Intent.EXTRA_STREAM, croppedUri)
+            clipData = ClipData.newRawUri(null, croppedUri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
 
         _shareIntent.postValue(intent)

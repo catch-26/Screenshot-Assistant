@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.GridLayout
 import android.widget.ImageView
@@ -19,6 +20,11 @@ import java.util.Locale
 
 class ColorPickerDialog : DialogFragment() {
 
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+    }
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val context = requireContext()
         val density = resources.displayMetrics.density
@@ -28,7 +34,7 @@ class ColorPickerDialog : DialogFragment() {
 
         val grid = GridLayout(context).apply {
             columnCount = 4
-            setPadding(margin * 2, margin * 2, margin * 2, 0)
+            setPadding(margin * 2, margin, margin * 2, margin * 2)
         }
         resources.getIntArray(R.array.colorPicker).forEach { color ->
             val swatch = FrameLayout(context).apply {

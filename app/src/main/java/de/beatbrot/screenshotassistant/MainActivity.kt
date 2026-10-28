@@ -1,8 +1,16 @@
 package de.beatbrot.screenshotassistant
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.Rect
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
@@ -34,6 +42,7 @@ class MainActivity : AppCompatActivity() {
         val imgPath = intent.getParcelableExtra<Uri>("screenshot")
         if (imgPath != null) {
             loadInitialImage(imgPath)
+            viewModel.screenshot?.let { showBackground(it) }
         } else {
             Toast.makeText(baseContext, R.string.error_no_screenshot, Toast.LENGTH_SHORT).show()
             finish()
@@ -76,7 +85,7 @@ class MainActivity : AppCompatActivity() {
             popMenu.show()
         }
 
-        v.shareButton.setOnClickListener { v.cropView.getCroppedImage()?.let { bitmap -> viewModel.shareImage(bitmap) } }
+        v.shareButton.setOnClickListener { shareCurrentImage() }
     }
 
     private fun initViewModel() {
@@ -113,6 +122,7 @@ class MainActivity : AppCompatActivity() {
             when (newState) {
                 EditingMode.CROP -> {
                     hideBottomSheet()
+                    showActionButtons(true)
                     v.drawingView.visibility = View.GONE
                     v.cropView.visibility = View.VISIBLE
                     if (v.drawingView.drawable != null) {
@@ -126,11 +136,41 @@ class MainActivity : AppCompatActivity() {
                         viewModel.currentBitmap.value = it
                     }
                     viewModel.cropRect.value = null
+                    showActionButtons(false)
                     showBottomSheet()
                 }
                 else -> throw UnsupportedOperationException()
             }
         })
+    }
+
+    private fun shareCurrentImage() {
+        val image = when (viewModel.editingMode.value) {
+            EditingMode.PAINT -> v.drawingView.takeIf { it.drawable != null }?.exportImage()
+            else -> v.cropView.getCroppedImage()
+        }
+        image?.let { viewModel.shareImage(it) }
+    }
+
+    private fun showActionButtons(visible: Boolean) {
+        listOf(v.shareButton, v.drawButton, v.menuButton).forEach { button ->
+            button.animate().cancel()
+            if (visible) {
+                button.visibility = View.VISIBLE
+                button.animate().alpha(1F).start()
+            } else {
+                button.animate().alpha(0F).withEndAction { button.visibility = View.INVISIBLE }.start()
+            }
+        }
+    }
+
+    // Shows the screenshot behind the editor, desaturated by the same share as the
+    // scrim darkens it, so the background looks dimmed and faded.
+    private fun showBackground(screenshot: Bitmap) {
+        val faded = BitmapDrawable(resources, screenshot).apply {
+            colorFilter = ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(1F - SCRIM_ALPHA / 255F) })
+        }
+        v.root.background = LayerDrawable(arrayOf<Drawable>(faded, ColorDrawable(Color.argb(SCRIM_ALPHA, 0, 0, 0))))
     }
 
     private fun animateImageView(imageView: View) {
@@ -192,7 +232,13 @@ class MainActivity : AppCompatActivity() {
     private fun loadInitialImage(uri: Uri) {
         if (viewModel.currentBitmap.value == null) {
             val inputStream = contentResolver.openInputStream(uri)
-            viewModel.currentBitmap.value = BitmapFactory.decodeStream(inputStream)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            viewModel.screenshot = bitmap
+            viewModel.currentBitmap.value = bitmap
         }
+    }
+
+    private companion object {
+        const val SCRIM_ALPHA = 0x7D
     }
 }

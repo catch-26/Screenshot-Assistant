@@ -46,7 +46,7 @@ class DrawSettingsViewModel : ViewModel() {
         addSource(editingMode) { newMode ->
             value = when (newMode) {
                 DrawMode.PEN -> 6F
-                DrawMode.MARKER -> 30F
+                DrawMode.MARKER -> 45F
                 else -> value
             }
         }
