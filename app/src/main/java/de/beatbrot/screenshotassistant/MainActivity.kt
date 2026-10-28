@@ -95,8 +95,10 @@ class MainActivity : AppCompatActivity() {
         viewModel.currentBitmap.observe(this, Observer { newBitmap ->
             when (viewModel.editingMode.value) {
                 EditingMode.CROP -> {
+                    v.cropView.findViewById<View>(com.canhub.cropper.R.id.ImageView_image).clearAnimation()
                     v.cropView.setImageBitmap(newBitmap)
                     v.cropView.cropRect = Rect(v.cropView.wholeImageRect)
+                    v.cropView.post { v.cropView.requestLayout() }
                     animateImageView(v.cropView)
                 }
                 EditingMode.PAINT -> {
