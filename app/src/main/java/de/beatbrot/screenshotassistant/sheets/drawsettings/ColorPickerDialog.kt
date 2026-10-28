@@ -4,7 +4,10 @@ import android.app.Dialog
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.InsetDrawable
+import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.ViewGroup
@@ -14,8 +17,9 @@ import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.DialogFragment
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.color.MaterialColors
 import de.beatbrot.screenshotassistant.R
+import de.beatbrot.screenshotassistant.databinding.DialogColorPickerBinding
 import java.util.Locale
 
 class ColorPickerDialog : DialogFragment() {
@@ -26,19 +30,17 @@ class ColorPickerDialog : DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val context = requireContext()
+        val dialog = Dialog(requireContext(), R.style.ThemeOverlay_App_ColorPicker)
+        val context = dialog.context
         val density = resources.displayMetrics.density
         val size = (44 * density).toInt()
-        val margin = (8 * density).toInt()
+        val margin = (6 * density).toInt()
         val selected = requireArguments().getInt(COLOR)
+        val v = DialogColorPickerBinding.inflate(dialog.layoutInflater)
 
-        val grid = GridLayout(context).apply {
-            columnCount = 4
-            setPadding(margin * 2, margin, margin * 2, margin * 2)
-        }
         resources.getIntArray(R.array.colorPicker).forEach { color ->
             val swatch = FrameLayout(context).apply {
-                background = swatch(context, color)
+                background = if (color == selected) selectedSwatch(context, color) else swatch(context, color)
                 foreground = ContextCompat.getDrawable(context, R.drawable.ripple_oval)
                 contentDescription = String.format(Locale.ROOT, "#%06X", color and 0xFFFFFF)
                 layoutParams = GridLayout.LayoutParams().apply {
@@ -52,20 +54,19 @@ class ColorPickerDialog : DialogFragment() {
                         imageTintList = ColorStateList.valueOf(
                             if (ColorUtils.calculateLuminance(color) > 0.5) Color.BLACK else Color.WHITE
                         )
-                    }, FrameLayout.LayoutParams(size / 2, size / 2, Gravity.CENTER))
+                    }, FrameLayout.LayoutParams(size * 5 / 11, size * 5 / 11, Gravity.CENTER))
                 }
                 setOnClickListener {
                     parentFragmentManager.setFragmentResult(RESULT, Bundle().apply { putInt(COLOR, color) })
                     dismiss()
                 }
             }
-            grid.addView(swatch)
+            v.grid.addView(swatch)
         }
 
-        return MaterialAlertDialogBuilder(context)
-            .setTitle(R.string.pick_color)
-            .setView(grid)
-            .create()
+        dialog.setCanceledOnTouchOutside(true)
+        dialog.setContentView(v.root)
+        return dialog
     }
 
     companion object {
@@ -83,6 +84,18 @@ class ColorPickerDialog : DialogFragment() {
                 (1 * context.resources.displayMetrics.density).toInt().coerceAtLeast(1),
                 ContextCompat.getColor(context, R.color.cardStroke)
             )
+        }
+
+        private fun selectedSwatch(context: Context, color: Int): Drawable {
+            val density = context.resources.displayMetrics.density
+            val ring = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setStroke(
+                    (2 * density).toInt(),
+                    MaterialColors.getColor(context, com.google.android.material.R.attr.colorOnSurface, Color.BLACK)
+                )
+            }
+            return LayerDrawable(arrayOf(ring, InsetDrawable(swatch(context, color), (5 * density).toInt())))
         }
     }
 }
