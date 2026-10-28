@@ -12,6 +12,10 @@ android {
         targetSdk 37
         versionCode 261005
         versionName "v26.10.5"
+        if (project.hasProperty('versionNameOverride')) {
+            versionName project.property('versionNameOverride')
+            versionCode project.property('versionCodeOverride').toInteger()
+        }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {

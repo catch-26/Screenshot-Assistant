@@ -1,0 +1,90 @@
+name: Pre-release
+
+# Publishes a signed test build as a GitHub pre-release on every push to the
+# prerelease branch. It takes the next running number of the month like a
+# release (vYY.MM.N-pre, versionCode YYMMNN) without touching app/build.gradle,
+# so the next regular release counts on from it. Pre-releases are not releases:
+# the release rules ignore -pre tags when they look for the last release.
+
+on:
+  push:
+    branches:
+      - prerelease
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Pick the next version
+        run: |
+          MONTH=$(TZ=Europe/Berlin date +%y.%m)
+          LAST=$(git tag -l "v$MONTH.*" | sed -E 's/^v[0-9]+\.[0-9]+\.([0-9]+).*/\1/' | sort -n | tail -1)
+          N=$(( ${LAST:--1} + 1 ))
+          VERSION="v$MONTH.$N-pre"
+          VERSION_CODE="${MONTH/./}$(printf %02d "$N")"
+          CURRENT_CODE=$(grep -oP 'versionCode\s+\K[0-9]+' app/build.gradle)
+          if [ "$VERSION_CODE" -le "$CURRENT_CODE" ]; then
+            echo "::error::versionCode $VERSION_CODE is not higher than $CURRENT_CODE in app/build.gradle"
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
+          echo "Pre-release $VERSION ($VERSION_CODE)"
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.p12"
+
+      - name: Build signed release APK
+        env:
+          KEYSTORE_PATH: ${{ runner.temp }}/release.p12
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleRelease --no-daemon -PversionNameOverride="$VERSION" -PversionCodeOverride="$VERSION_CODE" 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+
+      - name: Report build errors as annotation
+        if: failure()
+        run: |
+          {
+            grep -nE -A12 "What went wrong" build.log | head -40
+            grep -nE "^e: |error:|FAILED|Could not|Lint found" build.log | head -30
+            echo "----- tail -----"
+            tail -15 build.log
+          } > summary.txt
+          msg=$(sed -e 's/%/%25/g' summary.txt | sed -e ':a;N;$!ba;s/\n/%0A/g')
+          echo "::error title=Pre-release build failed::$msg"
+
+      - name: Create GitHub pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/release/app-release.apk "dist/ScreenshotAssistant-$VERSION.apk"
+          LAST_RELEASE=$(git tag -l 'v*' '20*' --sort=-creatordate | grep -v -- '-pre$' | head -1)
+          {
+            echo "Test build from ${GITHUB_SHA::7}. Not a release: these changes ship with the next regular release."
+            echo
+            echo "Changes since $LAST_RELEASE:"
+            echo
+            git log --no-merges --format='- %s' "$LAST_RELEASE..HEAD"
+          } > notes.md
+          gh release create "$VERSION" dist/* --target "$GITHUB_SHA" --title "$VERSION" --notes-file notes.md --prerelease --latest=false
