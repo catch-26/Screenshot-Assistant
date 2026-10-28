@@ -1,14 +1,18 @@
-Screenshot assistant is a replacement for Google Assistant with the sole purpose of taking, cropping and sharing a screenshot.
+Screenshot Assistant replaces the digital assistant app with one job: take a screenshot when you use the assist gesture, then let you crop, draw on and share it.
 
-👉 Setup instructions:
+Setup:
 
-1. Install the app
-2. Set it as assistant via Apps > Default Apps > Assist app
-3. Trigger Google Assistant
+1. Install the app and open it.
+2. Pick it under Settings > Apps > Default apps > Digital assistant app, and turn on "Use screenshot" there.
+3. Use the assist gesture (for example, long-press the home button or swipe up from a bottom corner).
 
-🚀 Features:
+Features:
 
-- Screenshot with adjustable quality and image format
-- Tight system integration via Assist API
-- No permission needed
-- No storage used up by old screenshots
+- Screenshot through the Android Assist API, no screen recording permission
+- Crop, draw with a pen or highlighter, undo and redo
+- Share straight to any app, with adjustable image format and quality
+- Nothing is saved to storage, so old screenshots don't pile up
+- Optional reminder after a restart or app update if Android reset the digital assistant app (needs the notification permission)
+- No internet access, no ads, no tracking
+
+Requires Android 14 or newer.

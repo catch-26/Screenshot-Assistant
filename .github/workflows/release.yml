@@ -4,7 +4,7 @@ name: Release
 # on a push to master that bumps the version, on a pushed tag, or by hand.
 # Pushes that leave the version alone publish nothing.
 # The tag and release title are the versionName, vYY.MM.N (N counts releases
-# within the month from 0). versionCode is a plain counter. Older releases were
+# within the month from 0), versionCode is YYMMNN. Older releases were
 # tagged 20261026..20261027d or with the versionCode; those count as released.
 
 on:
@@ -57,6 +57,9 @@ jobs:
             RELEASE=false
           else
             RELEASE=true
+            if [ ! -f "fastlane/metadata/android/en-US/changelogs/$VERSION_CODE.txt" ]; then
+              echo "::warning::fastlane/metadata/android/en-US/changelogs/$VERSION_CODE.txt is missing, F-Droid will show no changelog for $VERSION_NAME"
+            fi
           fi
           echo "release=$RELEASE" >> "$GITHUB_OUTPUT"
 
@@ -112,3 +115,9 @@ jobs:
         run: |
           awk -v code="$VERSION_CODE" -v name="$VERSION" '/^# /{p=($2==code||$2==name)} p&&!/^# /' CHANGELOG.md > notes.md
           gh release create "$VERSION" dist/* --target "$GITHUB_SHA" --title "$VERSION" --notes-file notes.md --generate-notes
+
+  reproducible:
+    needs: [check, release]
+    uses: ./.github/workflows/reproducible.yml
+    with:
+      tag: ${{ needs.check.outputs.version }}

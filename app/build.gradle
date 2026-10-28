@@ -41,6 +41,11 @@ android {
         buildConfig = true
     }
 
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+
     lint {
         disable 'HighAppVersionCode'
     }

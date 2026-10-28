@@ -1,3 +1,0 @@
-- 💾 Save editor state accross configuration changes
-- 🈂️ Add translation to settings
-- 💥 Fix broken About-Activity

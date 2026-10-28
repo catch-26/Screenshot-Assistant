@@ -1,0 +1,59 @@
+name: Reproducible build
+
+# Rebuilds a release from source without signing, the way F-Droid does, and
+# checks that the signature of the published APK fits the rebuild. Only then
+# can F-Droid ship our signed APK. Runs after each release and by hand.
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to check, e.g. v26.10.5
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag }}
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build unsigned release APK
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Download published APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download "$TAG" --pattern '*.apk' --dir published
+
+      - name: Compare with apksigcopier
+        run: |
+          pip install --quiet apksigcopier
+          BUILD_TOOLS=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)
+          export PATH="$ANDROID_HOME/build-tools/$BUILD_TOOLS:$PATH"
+          if apksigcopier compare published/*.apk --unsigned app/build/outputs/apk/release/app-release-unsigned.apk; then
+            echo "$TAG is reproducible"
+          else
+            unzip -l published/*.apk | sort -k4 > published.txt
+            unzip -l app/build/outputs/apk/release/app-release-unsigned.apk | sort -k4 > rebuilt.txt
+            msg=$(diff published.txt rebuilt.txt | head -60 | sed -e 's/%/%25/g' | sed -e ':a;N;$!ba;s/\n/%0A/g')
+            echo "::error title=$TAG is not reproducible::$msg"
+            exit 1
+          fi

@@ -1,5 +1,6 @@
 # Unreleased
 
+- The APK no longer contains the encrypted dependency metadata block that the Android Gradle Plugin adds by default. F-Droid rejects APKs that carry it.
 - Log screen: the content now keeps the same 24dp margin as the other screens instead of running to the screen edge, so text is no longer cut off by rounded display corners.
 
 # v26.10.5 (2026-10-27)
