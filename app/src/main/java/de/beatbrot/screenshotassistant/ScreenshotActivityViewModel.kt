@@ -42,11 +42,18 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
     private val context: Context
         get() = getApplication<Application>().baseContext
 
+    // Starts from the start-screen defaults; a change in the editor only applies to this screenshot.
+    val format = liveDataOf(context.sharedPrefs.imageFormat)
+
+    val quality = liveDataOf(context.sharedPrefs.imageQuality)
+
+    val formatDrawerOpen = liveDataOf(false)
+
     private val imageFormat: Bitmap.CompressFormat
-        get() = context.sharedPrefs.imageFormat
+        get() = format.value ?: context.sharedPrefs.imageFormat
 
     private val imageQuality: Int
-        get() = context.sharedPrefs.imageQuality
+        get() = quality.value ?: context.sharedPrefs.imageQuality
 
     val editingMode = liveDataOf(EditingMode.CROP)
 

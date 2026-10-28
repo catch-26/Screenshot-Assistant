@@ -79,6 +79,21 @@ class MainActivityTest {
     }
 
     @Test
+    fun testFormatDrawerChangesFormat() {
+        onView(withId(R.id.formatChip))
+            .perform(click())
+
+        onView(withId(R.id.formatRowJpeg))
+            .check(matches(isDisplayed()))
+            .perform(click())
+
+        onView(withId(R.id.formatChip))
+            .check(matches(withText("JPEG")))
+        onView(withId(R.id.formatDrawer))
+            .check(matches(not(isDisplayed())))
+    }
+
+    @Test
     @Ignore("Messes with other tests")
     fun testShareOpens() {
         onView(withId(R.id.shareButton))

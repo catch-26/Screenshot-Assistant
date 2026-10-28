@@ -8,12 +8,16 @@ import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.transition.AutoTransition
+import android.transition.TransitionManager
 import android.util.Log
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.OvershootInterpolator
+import android.widget.CheckedTextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.AnimRes
@@ -43,6 +47,12 @@ class MainActivity : AppCompatActivity() {
             saveCurrentImage()
         }
     }
+    private val closeFormatDrawerOnBack = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            viewModel.formatDrawerOpen.value = false
+        }
+    }
+    private lateinit var formatRows: Map<CheckedTextView, Bitmap.CompressFormat>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,9 +95,44 @@ class MainActivity : AppCompatActivity() {
 
         v.drawButton.setOnClickListener { viewModel.editingMode.value = EditingMode.PAINT }
 
-        v.shareButton.setOnClickListener { currentImage()?.let { viewModel.shareImage(it) } }
+        v.shareButton.setOnClickListener {
+            viewModel.formatDrawerOpen.value = false
+            currentImage()?.let { viewModel.shareImage(it) }
+        }
 
-        v.saveButton.setOnClickListener { saveCurrentImage() }
+        v.saveButton.setOnClickListener {
+            viewModel.formatDrawerOpen.value = false
+            saveCurrentImage()
+        }
+
+        initFormatDrawer()
+    }
+
+    private fun initFormatDrawer() {
+        formatRows = mapOf(
+            v.formatRowPng to Bitmap.CompressFormat.PNG,
+            v.formatRowJpeg to Bitmap.CompressFormat.JPEG,
+            v.formatRowWebp to Bitmap.CompressFormat.WEBP
+        )
+
+        v.formatChip.setOnClickListener {
+            viewModel.formatDrawerOpen.value = viewModel.formatDrawerOpen.value != true
+        }
+
+        formatRows.forEach { (row, format) ->
+            row.setOnClickListener {
+                viewModel.format.value = format
+                viewModel.formatDrawerOpen.value = false
+            }
+        }
+
+        v.formatQualitySlider.addOnChangeListener { _, value, fromUser ->
+            if (fromUser) {
+                viewModel.quality.value = value.toInt()
+            }
+        }
+
+        onBackPressedDispatcher.addCallback(this, closeFormatDrawerOnBack)
     }
 
     private fun initViewModel() {
@@ -134,6 +179,33 @@ class MainActivity : AppCompatActivity() {
             viewModel.onSaveResultShown()
         })
 
+        viewModel.format.observe(this, Observer { format ->
+            v.formatChip.text = format.name
+            v.formatChip.contentDescription = getString(R.string.image_format_current, format.name)
+            formatRows.forEach { (row, rowFormat) -> row.isChecked = rowFormat == format }
+            // PNG is lossless, so quality only applies to JPEG and WEBP.
+            val lossy = format != Bitmap.CompressFormat.PNG
+            v.formatQualityLabel.visibility = if (lossy) View.VISIBLE else View.GONE
+            v.formatQualitySlider.visibility = if (lossy) View.VISIBLE else View.GONE
+        })
+
+        viewModel.quality.observe(this, Observer { quality ->
+            v.formatQualitySlider.value = quality.toFloat()
+            v.formatQualityLabel.text = getString(R.string.image_quality_value, quality)
+        })
+
+        viewModel.formatDrawerOpen.observe(this, Observer { open ->
+            if (open == (v.formatDrawer.visibility == View.VISIBLE)) {
+                return@Observer
+            }
+            TransitionManager.beginDelayedTransition(v.root, AutoTransition().setDuration(FORMAT_DRAWER_DURATION))
+            v.formatDrawer.visibility = if (open) View.VISIBLE else View.GONE
+            v.formatChip.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                0, 0, if (open) R.drawable.ic_expand_less_18dp else R.drawable.ic_expand_more_18dp, 0
+            )
+            closeFormatDrawerOnBack.isEnabled = open
+        })
+
         viewModel.editingMode.observe(this, Observer { newState ->
             when (newState) {
                 EditingMode.CROP -> {
@@ -152,6 +224,7 @@ class MainActivity : AppCompatActivity() {
                         viewModel.currentBitmap.value = it
                     }
                     viewModel.cropRect.value = null
+                    viewModel.formatDrawerOpen.value = false
                     showActionButtons(false)
                     showBottomSheet()
                 }
@@ -184,7 +257,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showActionButtons(visible: Boolean) {
-        listOf(v.saveButton, v.shareButton, v.drawButton).forEach { button ->
+        listOf(v.saveButton, v.formatChip, v.shareButton, v.drawButton).forEach { button ->
             button.animate().cancel()
             if (visible) {
                 button.visibility = View.VISIBLE
@@ -289,5 +362,6 @@ class MainActivity : AppCompatActivity() {
         const val TAG = "ScreenshotAssistant"
         const val BACKGROUND_FADE = 0.75F
         const val MAX_IMAGE_SIDE = 4096
+        const val FORMAT_DRAWER_DURATION = 200L
     }
 }

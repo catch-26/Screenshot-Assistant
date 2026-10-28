@@ -16,7 +16,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="16dp"
-        app:layout_constraintBottom_toTopOf="@id/shareButton"
+        app:layout_constraintBottom_toTopOf="@id/formatDrawer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -43,6 +43,75 @@
         android:src="@drawable/ic_save_24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/formatChip"
+        style="@style/Widget.App.EditorButton.Format"
+        android:layout_marginStart="12dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:drawableEnd="@drawable/ic_expand_more_18dp"
+        app:layout_constraintBottom_toBottomOf="@id/saveButton"
+        app:layout_constraintStart_toEndOf="@id/saveButton"
+        app:layout_constraintTop_toTopOf="@id/saveButton"
+        tools:text="PNG" />
+
+    <LinearLayout
+        android:id="@+id/formatDrawer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_format_drawer"
+        android:clickable="true"
+        android:focusable="true"
+        android:orientation="vertical"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/saveButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="visible">
+
+        <CheckedTextView
+            android:id="@+id/formatRowPng"
+            style="@style/Widget.App.FormatRow"
+            android:text="PNG"
+            tools:ignore="HardcodedText" />
+
+        <CheckedTextView
+            android:id="@+id/formatRowJpeg"
+            style="@style/Widget.App.FormatRow"
+            android:text="JPEG"
+            tools:ignore="HardcodedText" />
+
+        <CheckedTextView
+            android:id="@+id/formatRowWebp"
+            style="@style/Widget.App.FormatRow"
+            android:text="WEBP"
+            tools:ignore="HardcodedText" />
+
+        <TextView
+            android:id="@+id/formatQualityLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:textAppearance="?attr/textAppearanceBody2"
+            android:textColor="@color/editor_quiet_text" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/formatQualitySlider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/image_quality"
+            android:stepSize="1"
+            android:valueFrom="0"
+            android:valueTo="100" />
+    </LinearLayout>
 
     <ImageButton
         android:id="@+id/shareButton"
