@@ -11,6 +11,9 @@ import androidx.lifecycle.Observer
 import de.beatbrot.screenshotassistant.R
 import de.beatbrot.screenshotassistant.databinding.SheetColorsettingsBinding
 import de.beatbrot.screenshotassistant.draw.DrawingView
+import de.beatbrot.screenshotassistant.util.markerColor
+import de.beatbrot.screenshotassistant.util.penColor
+import de.beatbrot.screenshotassistant.util.sharedPrefs
 
 class DrawSettingsSheet : Fragment() {
     private lateinit var v: SheetColorsettingsBinding
@@ -37,9 +40,18 @@ class DrawSettingsSheet : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val prefs = requireContext().sharedPrefs
+        viewModel.penColor.value = prefs.penColor
+        viewModel.markerColor.value = prefs.markerColor
         initViewModel()
         childFragmentManager.setFragmentResultListener(ColorPickerDialog.RESULT, this) { _, result ->
-            viewModel.selectColor(result.getInt(ColorPickerDialog.COLOR))
+            val color = result.getInt(ColorPickerDialog.COLOR)
+            viewModel.selectColor(color)
+            if (viewModel.editingMode.value == DrawMode.MARKER) {
+                prefs.markerColor = color
+            } else {
+                prefs.penColor = color
+            }
         }
     }
 

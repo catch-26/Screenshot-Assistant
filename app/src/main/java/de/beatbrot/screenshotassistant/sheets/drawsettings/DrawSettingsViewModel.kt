@@ -1,21 +1,16 @@
 package de.beatbrot.screenshotassistant.sheets.drawsettings
 
-import android.app.Application
+import android.graphics.Color
 import android.graphics.Paint
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.ViewModel
 import de.beatbrot.screenshotassistant.util.liveDataOf
-import de.beatbrot.screenshotassistant.util.markerColor
-import de.beatbrot.screenshotassistant.util.penColor
-import de.beatbrot.screenshotassistant.util.sharedPrefs
 
-class DrawSettingsViewModel(application: Application) : AndroidViewModel(application) {
-    private val prefs = application.sharedPrefs
-
+class DrawSettingsViewModel : ViewModel() {
     val editingMode = liveDataOf(DrawMode.PEN)
 
-    val penColor = liveDataOf(prefs.penColor)
-    val markerColor = liveDataOf(prefs.markerColor)
+    val penColor = liveDataOf(Color.BLACK)
+    val markerColor = liveDataOf(DEFAULT_MARKER_COLOR)
 
     val strokeColor = MediatorLiveData<Int>().apply {
         addSource(penColor) { newValue ->
@@ -59,14 +54,12 @@ class DrawSettingsViewModel(application: Application) : AndroidViewModel(applica
 
     fun selectColor(color: Int) {
         when (editingMode.value) {
-            DrawMode.MARKER -> {
-                markerColor.value = color
-                prefs.edit().putInt("marker_color", color).apply()
-            }
-            else -> {
-                penColor.value = color
-                prefs.edit().putInt("pen_color", color).apply()
-            }
+            DrawMode.MARKER -> markerColor.value = color
+            else -> penColor.value = color
         }
+    }
+
+    companion object {
+        const val DEFAULT_MARKER_COLOR = 0xFFFACC15.toInt()
     }
 }

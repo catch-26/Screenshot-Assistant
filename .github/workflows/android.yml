@@ -17,9 +17,10 @@ jobs:
         if: failure()
         run: |
           {
-            grep -nE "What went wrong|^e: |error:|FAILURE|Could not|> " build.log | head -60
+            grep -nE -A12 "What went wrong" build.log | head -40
+            grep -nE "^e: |error:|FAILED|Could not|Lint found" build.log | head -30
             echo "----- tail -----"
-            tail -60 build.log
+            tail -15 build.log
           } > summary.txt
           msg=$(sed -e 's/%/%25/g' summary.txt | sed -e ':a;N;$!ba;s/\n/%0A/g')
           echo "::error title=Gradle build failed::$msg"

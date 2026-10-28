@@ -36,7 +36,7 @@ class DrawSettingsViewModelTest {
     @Test
     fun testInitialValue() {
         assertLDEquals(Color.BLACK, viewModel.penColor)
-        assertLDEquals(-0x14C5, viewModel.markerColor)
+        assertLDEquals(DrawSettingsViewModel.DEFAULT_MARKER_COLOR, viewModel.markerColor)
         assertLDEquals(Color.BLACK, viewModel.strokeColor)
     }
 
@@ -68,6 +68,18 @@ class DrawSettingsViewModelTest {
         assertLDEquals(Color.MAGENTA, viewModel.markerColor)
         viewModel.penColor.value = Color.RED
         assertLDEquals(Color.MAGENTA, viewModel.markerColor)
+    }
+
+    @Test
+    fun testSelectColorFollowsMode() {
+        viewModel.selectColor(Color.RED)
+        assertLDEquals(Color.RED, viewModel.penColor)
+
+        viewModel.editingMode.value = DrawMode.MARKER
+        viewModel.selectColor(Color.BLUE)
+        assertLDEquals(Color.BLUE, viewModel.markerColor)
+        assertLDEquals(Color.RED, viewModel.penColor)
+        assertLDEquals(Color.BLUE, viewModel.strokeColor)
     }
 
     private fun <T> assertLDEquals(expected: T, actual: LiveData<T>) {
