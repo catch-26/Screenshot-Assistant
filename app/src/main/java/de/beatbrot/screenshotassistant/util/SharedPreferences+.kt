@@ -5,11 +5,13 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import de.beatbrot.screenshotassistant.sheets.drawsettings.DrawSettingsViewModel
 
-val SharedPreferences.imageQuality: Int
+var SharedPreferences.imageQuality: Int
     get() = getInt("image_quality", 100)
+    set(value) = edit().putInt("image_quality", value).apply()
 
-val SharedPreferences.imageFormat: Bitmap.CompressFormat
+var SharedPreferences.imageFormat: Bitmap.CompressFormat
     get() = Bitmap.CompressFormat.valueOf(getString("image_format", null) ?: "PNG")
+    set(value) = edit().putString("image_format", value.name).apply()
 
 var SharedPreferences.penColor: Int
     get() = getInt("pen_color", Color.BLACK)

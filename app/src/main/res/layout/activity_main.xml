@@ -35,16 +35,6 @@
     </FrameLayout>
 
     <ImageButton
-        android:id="@+id/menuButton"
-        style="@style/Widget.App.EditorButton.Menu"
-        android:layout_marginStart="16dp"
-        android:contentDescription="@string/more"
-        android:src="@drawable/ic_more_vert_white_24dp"
-        app:layout_constraintBottom_toBottomOf="@id/shareButton"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/shareButton" />
-
-    <ImageButton
         android:id="@+id/shareButton"
         style="@style/Widget.App.EditorButton.Share"
         android:layout_marginEnd="16dp"

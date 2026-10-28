@@ -15,11 +15,9 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.AnimRes
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.PopupMenu
 import androidx.lifecycle.Observer
 import de.beatbrot.screenshotassistant.crop.CropOutsideFadeView
 import de.beatbrot.screenshotassistant.databinding.ActivityMainBinding
-import de.beatbrot.screenshotassistant.sheets.ModalSettingsSheet
 import de.beatbrot.screenshotassistant.sheets.drawsettings.DrawSettingsSheet
 import de.beatbrot.screenshotassistant.util.OpenAnimationListener
 import de.beatbrot.screenshotassistant.util.fadeFilter
@@ -68,20 +66,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         v.drawButton.setOnClickListener { viewModel.editingMode.value = EditingMode.PAINT }
-
-        v.menuButton.setOnClickListener {
-            val popMenu = PopupMenu(baseContext, it)
-            popMenu.setOnMenuItemClickListener { item ->
-                when (item.itemId) {
-                    R.id.settings_item -> showSettings()
-                    R.id.about_item -> startActivity(Intent(baseContext, AboutActivity::class.java))
-                    else -> throw IllegalArgumentException()
-                }
-                true
-            }
-            popMenu.menuInflater.inflate(R.menu.about_menu, popMenu.menu)
-            popMenu.show()
-        }
 
         v.shareButton.setOnClickListener { shareCurrentImage() }
     }
@@ -153,7 +137,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showActionButtons(visible: Boolean) {
-        listOf(v.shareButton, v.drawButton, v.menuButton).forEach { button ->
+        listOf(v.shareButton, v.drawButton).forEach { button ->
             button.animate().cancel()
             if (visible) {
                 button.visibility = View.VISIBLE
@@ -221,10 +205,6 @@ class MainActivity : AppCompatActivity() {
             }
         })
         view.startAnimation(anim)
-    }
-
-    private fun showSettings() {
-        ModalSettingsSheet().showNow(supportFragmentManager, "SETTINGS")
     }
 
     private fun loadInitialImage(uri: Uri) {

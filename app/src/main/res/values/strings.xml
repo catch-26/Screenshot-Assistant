@@ -7,18 +7,17 @@
     <string name="apache_2" translatable="false">Apache 2.0</string>
     <string name="license">License</string>
     <string name="version">Version</string>
-    <string name="more">More</string>
     <string name="share">Share</string>
     <string name="draw">Draw</string>
     <string name="error_no_screenshot">Error: Screenshot could not be captured</string>
     <string name="enable_screenshot">Screenshot could not be taken. Please enable \"Use screenshot\" in assist settings</string>
     <string name="share_image">Share screenshot…</string>
-    <string name="title_sheet_settings">Settings</string>
     <string name="undo">Undo</string>
     <string name="redo">Redo</string>
     <string name="done">Done</string>
     <string name="image_quality">Image Quality</string>
     <string name="image_format">Image Format</string>
+    <string name="image_quality_value">Image quality: %1$d</string>
 
     <string name="pick_color">Pick a color</string>
     <string name="pen">Pen</string>
