@@ -6,6 +6,8 @@
     <string name="error_no_screenshot">Fehler: Screenshot konnte nicht aufgenommen werden</string>
     <string name="license">Lizenz</string>
     <string name="more">Mehr</string>
+    <string name="share">Teilen</string>
+    <string name="draw">Zeichnen</string>
     <string name="version">Version</string>
     <string name="enable_screenshot">Screenshot konnte nicht aufgenommen werden. Bitte aktiere \"Screenshot verwenden\" in den Systemeinstellungen</string>
     <string name="share_image">Bild teilen…</string>

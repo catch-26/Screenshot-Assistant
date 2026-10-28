@@ -34,41 +34,35 @@
 
     </FrameLayout>
 
-    <ImageView
+    <ImageButton
         android:id="@+id/menuButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="start"
+        style="@style/Widget.App.EditorButton.Menu"
         android:layout_marginStart="16dp"
-        android:layout_marginBottom="32dp"
         android:contentDescription="@string/more"
         android:src="@drawable/ic_more_vert_white_24dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintBottom_toBottomOf="@id/shareButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/shareButton" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <ImageButton
         android:id="@+id/shareButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:layout_margin="16dp"
+        style="@style/Widget.App.EditorButton.Share"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
+        android:contentDescription="@string/share"
+        android:src="@drawable/ic_share_black_24dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/ic_share_black_24dp" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <ImageButton
         android:id="@+id/drawButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        app:backgroundTint="?attr/colorBackgroundFloating"
-        app:layout_constraintBottom_toBottomOf="parent"
+        style="@style/Widget.App.EditorButton.Draw"
+        android:layout_marginEnd="12dp"
+        android:contentDescription="@string/draw"
+        android:src="@drawable/ic_pencil_black_24dp"
+        app:layout_constraintBottom_toBottomOf="@id/shareButton"
         app:layout_constraintEnd_toStartOf="@+id/shareButton"
-        app:srcCompat="@drawable/ic_pencil_black_24dp"
-        app:tint="?attr/colorControlNormal" />
+        app:layout_constraintTop_toTopOf="@id/shareButton" />
 
     <FrameLayout
         android:id="@+id/bottomSheet"

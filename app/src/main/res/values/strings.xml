@@ -8,6 +8,8 @@
     <string name="license">License</string>
     <string name="version">Version</string>
     <string name="more">More</string>
+    <string name="share">Share</string>
+    <string name="draw">Draw</string>
     <string name="error_no_screenshot">Error: Screenshot could not be captured</string>
     <string name="enable_screenshot">Screenshot could not be taken. Please enable \"Use screenshot\" in assist settings</string>
     <string name="share_image">Share screenshot…</string>
