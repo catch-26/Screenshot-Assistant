@@ -13,6 +13,7 @@ on:
       - master
     tags:
       - 'v*'
+      - '!v*-pre'
       - '20*'
   workflow_dispatch:
 
@@ -48,6 +49,9 @@ jobs:
               exit 1
             fi
             RELEASE=true
+          elif git rev-parse -q --verify "refs/tags/$VERSION_NAME-pre" >/dev/null; then
+            echo "::error::$VERSION_NAME-pre is a pre-release with versionCode $VERSION_CODE; bump to the next running number"
+            exit 1
           elif git rev-parse -q --verify "refs/tags/$VERSION_NAME" >/dev/null || git rev-parse -q --verify "refs/tags/$VERSION_CODE" >/dev/null; then
             if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
               echo "::error::Version $VERSION_NAME ($VERSION_CODE) is already tagged; bump the version first"
@@ -114,7 +118,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           awk -v code="$VERSION_CODE" -v name="$VERSION" '/^# /{p=($2==code||$2==name)} p&&!/^# /' CHANGELOG.md > notes.md
-          gh release create "$VERSION" dist/* --target "$GITHUB_SHA" --title "$VERSION" --notes-file notes.md --generate-notes
+          LAST_RELEASE=$(git tag -l 'v*' '20*' --sort=-creatordate | grep -v -- '-pre$' | grep -vx "$VERSION" | head -1)
+          gh release create "$VERSION" dist/* --target "$GITHUB_SHA" --title "$VERSION" --notes-file notes.md --generate-notes ${LAST_RELEASE:+--notes-start-tag "$LAST_RELEASE"}
 
   reproducible:
     needs: [check, release]
