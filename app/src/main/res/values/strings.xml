@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Screenshot Assistant</string>
     <string name="launcher_name">Screenshot</string>
-    <string name="copyright" translatable="false">© beatbrot 2019 · user-mb 2026</string>
+    <string name="copyright" translatable="false">© beatbrot 2019 · catch-26 2026</string>
     <string name="about">About</string>
     <string name="github" translatable="false">GitHub</string>
     <string name="apache_2" translatable="false">Apache 2.0</string>

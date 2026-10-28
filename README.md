@@ -13,7 +13,7 @@
 
 ## Install
 
-Download the APK from [Releases](https://github.com/user-mb/Screenshot-Assistant/releases). Requires Android 14 or newer.
+Download the APK from [Releases](https://github.com/catch-26/Screenshot-Assistant/releases). Requires Android 14 or newer.
 
 ## Setup
 
