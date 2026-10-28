@@ -23,6 +23,7 @@ import androidx.annotation.AnimRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
 import androidx.lifecycle.Observer
+import de.beatbrot.screenshotassistant.crop.CropOutsideFadeView
 import de.beatbrot.screenshotassistant.databinding.ActivityMainBinding
 import de.beatbrot.screenshotassistant.sheets.ModalSettingsSheet
 import de.beatbrot.screenshotassistant.sheets.drawsettings.DrawSettingsSheet
@@ -64,6 +65,8 @@ class MainActivity : AppCompatActivity() {
 
         drawSettingsSheet.onHideListener = { viewModel.editingMode.value = EditingMode.CROP }
         drawSettingsSheet.drawingView = v.drawingView
+
+        CropOutsideFadeView.attachTo(v.cropView)
 
         v.cropView.setOnSetImageUriCompleteListener { view, _, _ ->
             view.cropRect = Rect(view.wholeImageRect)
@@ -164,11 +167,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Shows the screenshot behind the editor, desaturated by the same share as the
-    // scrim darkens it, so the background looks dimmed and faded.
+    // Shows the screenshot behind the editor, desaturated and darkened by the scrim.
     private fun showBackground(screenshot: Bitmap) {
         val faded = BitmapDrawable(resources, screenshot).apply {
-            colorFilter = ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(1F - SCRIM_ALPHA / 255F) })
+            colorFilter = ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(1F - BACKGROUND_SATURATION_REDUCTION) })
         }
         v.root.background = LayerDrawable(arrayOf<Drawable>(faded, ColorDrawable(Color.argb(SCRIM_ALPHA, 0, 0, 0))))
     }
@@ -239,6 +241,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private companion object {
-        const val SCRIM_ALPHA = 0x7D
+        const val SCRIM_ALPHA = 0x80
+        const val BACKGROUND_SATURATION_REDUCTION = 0.5F
     }
 }
