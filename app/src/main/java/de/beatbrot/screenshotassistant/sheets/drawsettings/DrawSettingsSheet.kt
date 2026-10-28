@@ -1,6 +1,5 @@
 package de.beatbrot.screenshotassistant.sheets.drawsettings
 
-import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,25 +8,20 @@ import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import de.beatbrot.imagepainter.view.ImagePainterView
 import de.beatbrot.screenshotassistant.R
 import de.beatbrot.screenshotassistant.databinding.SheetColorsettingsBinding
+import de.beatbrot.screenshotassistant.draw.DrawingView
 
 class DrawSettingsSheet : Fragment() {
     private lateinit var v: SheetColorsettingsBinding
 
-    var imagePainter: ImagePainterView? = null
+    var drawingView: DrawingView? = null
         set(value) {
             field = value
-            field?.setRedoStatusChangeListener {
+            field?.onHistoryChanged = { canUndo, canRedo ->
                 if (::v.isInitialized) {
-                    v.redoButton.isEnabled = it
-                }
-            }
-            field?.setUndoStatusChangeListener {
-                if (::v.isInitialized) {
-                    v.undoButton.isEnabled = it
+                    v.undoButton.isEnabled = canUndo
+                    v.redoButton.isEnabled = canRedo
                 }
             }
         }
@@ -44,6 +38,9 @@ class DrawSettingsSheet : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initViewModel()
+        childFragmentManager.setFragmentResultListener(ColorPickerDialog.RESULT, this) { _, result ->
+            viewModel.selectColor(result.getInt(ColorPickerDialog.COLOR))
+        }
     }
 
     private fun initViewModel() {
@@ -51,36 +48,38 @@ class DrawSettingsSheet : Fragment() {
             if (newValue == null) {
                 return@Observer
             }
-            v.colorButton.color = newValue
+            v.colorButton.background = ColorPickerDialog.swatch(requireContext(), newValue)
             if (viewModel.editingMode.value == DrawMode.PEN) {
-                imagePainter?.strokeColor = newValue
+                drawingView?.strokeColor = newValue
             } else {
-                imagePainter?.strokeColor = ColorUtils.setAlphaComponent(newValue, 255 / 3)
+                drawingView?.strokeColor = ColorUtils.setAlphaComponent(newValue, 255 / 3)
             }
         })
 
         viewModel.strokeCap.observe(this, Observer { newValue ->
-            imagePainter?.strokeCap = newValue
+            drawingView?.strokeCap = newValue
         })
 
         viewModel.strokeWidth.observe(this, Observer { newValue ->
-            imagePainter?.strokeWidth = newValue
+            drawingView?.strokeWidth = newValue
         })
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        v.undoButton.isEnabled = imagePainter?.canUndo() ?: false
-        v.redoButton.isEnabled = imagePainter?.canRedo() ?: false
+        v.undoButton.isEnabled = drawingView?.canUndo() ?: false
+        v.redoButton.isEnabled = drawingView?.canRedo() ?: false
 
-        v.undoButton.setOnClickListener { imagePainter?.undo() }
-        v.redoButton.setOnClickListener { imagePainter?.redo() }
-        v.penSelector.setToggled(R.id.draw_mode, true)
-        v.penSelector.onToggledListener = { _, toggle, selected ->
-            if (selected) {
-                viewModel.editingMode.value = when (toggle.id) {
-                    R.id.draw_mode -> DrawMode.PEN
-                    else -> DrawMode.MARKER
+        v.undoButton.setOnClickListener { drawingView?.undo() }
+        v.redoButton.setOnClickListener { drawingView?.redo() }
+        v.penSelector.check(
+            if (viewModel.editingMode.value == DrawMode.MARKER) R.id.markerButton else R.id.penButton
+        )
+        v.penSelector.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                viewModel.editingMode.value = when (checkedId) {
+                    R.id.markerButton -> DrawMode.MARKER
+                    else -> DrawMode.PEN
                 }
             }
         }
@@ -90,20 +89,7 @@ class DrawSettingsSheet : Fragment() {
     }
 
     private fun showColorPicker() {
-        val dialog = ColorPickerDialog()
-        dialog.onColorSelected = { color ->
-            if (viewModel.editingMode.value == DrawMode.PEN) {
-                viewModel.penColor.postValue(color)
-            } else if (viewModel.editingMode.value == DrawMode.MARKER) {
-                viewModel.markerColor.postValue(color)
-            }
-        }
-        dialog.show(childFragmentManager, "COLOR_PICKER")
+        val selected = viewModel.strokeColor.value ?: return
+        ColorPickerDialog.newInstance(selected).show(childFragmentManager, "COLOR_PICKER")
     }
-
-    private var FloatingActionButton.color: Int
-        get() = backgroundTintList?.defaultColor ?: throw NullPointerException()
-        set(value) {
-            backgroundTintList = ColorStateList.valueOf(value)
-        }
 }

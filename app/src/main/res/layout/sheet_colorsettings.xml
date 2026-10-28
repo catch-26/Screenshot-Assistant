@@ -1,77 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".MainActivity"
     android:layout_width="match_parent"
-    android:layout_height="72dp"
-    tools:keep="@layout/sheet_colorsettings"
-    android:background="?attr/colorSurface">
+    android:layout_height="wrap_content"
+    app:cardBackgroundColor="?attr/colorSurface"
+    app:cardElevation="8dp"
+    app:contentPaddingBottom="12dp"
+    app:contentPaddingLeft="12dp"
+    app:contentPaddingRight="12dp"
+    app:contentPaddingTop="12dp"
+    app:shapeAppearanceOverlay="@style/ShapeAppearance.App.TopSheet"
+    app:strokeWidth="0dp"
+    tools:context=".MainActivity"
+    tools:keep="@layout/sheet_colorsettings">
 
-    <ImageButton
-        android:id="@+id/undoButton"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/undo"
-        android:padding="8dp"
-        android:src="@drawable/ic_chevron_left_black_24dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/button_color" />
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-    <ImageButton
-        android:id="@+id/redoButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/redo"
-        android:padding="8dp"
-        android:src="@drawable/ic_chevron_right_black_24dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/undoButton"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/button_color" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/undoButton"
+            style="@style/Widget.App.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/undo"
+            app:icon="@drawable/ic_undo_24dp" />
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/redoButton"
+            style="@style/Widget.App.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/redo"
+            app:icon="@drawable/ic_redo_24dp" />
 
-    <com.savvyapps.togglebuttonlayout.ToggleButtonLayout
-        android:id="@+id/penSelector"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:allowDeselection="false"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/colorButton"
-        app:layout_constraintHorizontal_chainStyle="packed"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:menu="@menu/draw_modes"
-        app:multipleSelection="false"
-        app:toggleMode="even" />
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/colorButton"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/penSelector"
-        app:layout_constraintTop_toTopOf="parent" />
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/penSelector"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:checkedButton="@id/penButton"
+            app:selectionRequired="true"
+            app:singleSelection="true">
 
-    <ImageButton
-        android:id="@+id/doneButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/done"
-        android:padding="8dp"
-        android:src="@drawable/ic_check_black_24dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/penButton"
+                style="@style/Widget.App.ToggleButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/pen"
+                app:icon="@drawable/ic_pencil_black_24dp" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/markerButton"
+                style="@style/Widget.App.ToggleButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/marker"
+                app:icon="@drawable/ic_marker_24dp" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        <View
+            android:id="@+id/colorButton"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="16dp"
+            android:contentDescription="@string/pick_color"
+            android:focusable="true"
+            android:foreground="@drawable/ripple_oval" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/doneButton"
+            style="@style/Widget.App.DoneButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/done"
+            app:icon="@drawable/ic_check_black_24dp" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

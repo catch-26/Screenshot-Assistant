@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         viewModel.cropRect.value = v.cropView.cropRect
-        viewModel.drawStack.value = v.imagePainter.drawStack
+        viewModel.drawStack.value = v.drawingView.drawStack
     }
 
     private fun initUI() {
@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
             .commitNow()
 
         drawSettingsSheet.onHideListener = { viewModel.editingMode.value = EditingMode.CROP }
-        drawSettingsSheet.imagePainter = v.imagePainter
+        drawSettingsSheet.drawingView = v.drawingView
 
         v.cropView.setOnSetImageUriCompleteListener { view, _, _ ->
             view.cropRect = Rect(view.wholeImageRect)
@@ -88,8 +88,8 @@ class MainActivity : AppCompatActivity() {
                     animateImageView(v.cropView)
                 }
                 EditingMode.PAINT -> {
-                    v.imagePainter.setImageBitmap(newBitmap)
-                    animateImageView(v.imagePainter)
+                    v.drawingView.setImageBitmap(newBitmap)
+                    animateImageView(v.drawingView)
                 }
                 null -> Unit
             }
@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.drawStack.observe(this, Observer { stack ->
             if (stack != null) {
-                v.imagePainter.drawStack = stack
+                v.drawingView.drawStack = stack
             }
         })
 
@@ -113,15 +113,15 @@ class MainActivity : AppCompatActivity() {
             when (newState) {
                 EditingMode.CROP -> {
                     hideBottomSheet()
-                    v.imagePainter.visibility = View.GONE
+                    v.drawingView.visibility = View.GONE
                     v.cropView.visibility = View.VISIBLE
-                    if (v.imagePainter.drawable != null) {
-                        viewModel.currentBitmap.value = v.imagePainter.exportImage()
+                    if (v.drawingView.drawable != null) {
+                        viewModel.currentBitmap.value = v.drawingView.exportImage()
                     }
                 }
                 EditingMode.PAINT -> {
                     v.cropView.visibility = View.GONE
-                    v.imagePainter.visibility = View.VISIBLE
+                    v.drawingView.visibility = View.VISIBLE
                     v.cropView.tryExport()?.let {
                         viewModel.currentBitmap.value = it
                     }

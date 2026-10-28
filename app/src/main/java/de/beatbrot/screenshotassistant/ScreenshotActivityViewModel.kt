@@ -10,7 +10,7 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import de.beatbrot.imagepainter.DrawStack
+import de.beatbrot.screenshotassistant.draw.DrawStack
 import de.beatbrot.screenshotassistant.util.*
 import java.io.File
 import java.io.FileOutputStream

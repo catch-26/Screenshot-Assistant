@@ -14,8 +14,8 @@ import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
-import de.beatbrot.imagepainter.view.ImagePainterView
 import de.beatbrot.screenshotassistant.custom.*
+import de.beatbrot.screenshotassistant.draw.DrawingView
 import org.hamcrest.Matchers.*
 import org.junit.Assert.*
 import org.junit.Before
@@ -91,7 +91,7 @@ class MainActivityTest {
         onView(withId(R.id.drawButton))
             .perform(click())
 
-        onView(withId(R.id.imagePainter))
+        onView(withId(R.id.drawingView))
             .check(matches(isCompletelyDisplayed()))
     }
 
@@ -137,17 +137,17 @@ class MainActivityTest {
         onView(withId(R.id.drawButton))
             .perform(click())
 
-        onView(withId(R.id.imagePainter))
+        onView(withId(R.id.drawingView))
             .perform(draw())
 
-        var painter: ImagePainterView = activityRule.activity.findViewById(R.id.imagePainter)
+        var painter: DrawingView = activityRule.activity.findViewById(R.id.drawingView)
         assertTrue(painter.canUndo())
         assertFalse(painter.canRedo())
         val oldStack = painter.drawStack
 
         enableNightMode()
 
-        painter = activityRule.activity.findViewById(R.id.imagePainter)
+        painter = activityRule.activity.findViewById(R.id.drawingView)
         assertTrue(painter.canUndo())
         assertFalse(painter.canRedo())
         val newStack = painter.drawStack

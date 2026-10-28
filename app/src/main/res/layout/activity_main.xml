@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#7D000000"
+    android:clipChildren="false"
     android:fitsSystemWindows="true"
     android:theme="@style/AppTheme"
     tools:context=".MainActivity"
@@ -25,8 +26,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <de.beatbrot.imagepainter.view.ImagePainterView
-            android:id="@+id/imagePainter"
+        <de.beatbrot.screenshotassistant.draw.DrawingView
+            android:id="@+id/drawingView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
@@ -72,11 +73,8 @@
         android:id="@+id/bottomSheet"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/white"
         android:clickable="true"
-        android:elevation="8dp"
         android:focusable="true"
-        android:orientation="vertical"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

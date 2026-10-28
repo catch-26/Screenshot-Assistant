@@ -41,8 +41,6 @@ class AboutActivity : AppCompatActivity() {
 
     private val libraries = listOf(
         Library("Android Image Cropper", "4.7.0", "https://github.com/CanHub/Android-Image-Cropper"),
-        Library("ImagePainter", "3c3f2b9bcc", "https://github.com/beatbrot/ImagePainter"),
-        Library("ToggleButtonLayout", "1.3.0", "https://github.com/savvyapps/ToggleButtonLayout"),
         Library("AndroidX, Material Components", "Jetpack", "https://developer.android.com/jetpack/androidx"),
     )
 }

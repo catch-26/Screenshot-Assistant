@@ -7,7 +7,7 @@ import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction
 import androidx.test.espresso.ViewAssertion
 import com.canhub.cropper.CropImageView
-import de.beatbrot.imagepainter.view.ImagePainterView
+import de.beatbrot.screenshotassistant.draw.DrawingView
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers
 import org.junit.Assert.assertEquals
@@ -28,12 +28,12 @@ fun cropImageByHalf() = object : ViewAction {
 }
 
 fun draw() = object : ViewAction {
-    override fun getDescription() = "Draws on the image painter"
+    override fun getDescription() = "Draws on the drawing view"
 
-    override fun getConstraints() = Matchers.instanceOf<View>(ImagePainterView::class.java)
+    override fun getConstraints() = Matchers.instanceOf<View>(DrawingView::class.java)
 
     override fun perform(uiController: UiController?, view: View?) {
-        if (view is ImagePainterView) {
+        if (view is DrawingView) {
             view.apply {
                 onTouchEvent(motionEvent(MotionEvent.ACTION_DOWN, 10, 20))
                 onTouchEvent(motionEvent(MotionEvent.ACTION_MOVE, 20, 50))

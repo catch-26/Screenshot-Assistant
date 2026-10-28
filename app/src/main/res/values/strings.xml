@@ -18,6 +18,8 @@
     <string name="image_format">Image Format</string>
 
     <string name="pick_color">Pick a color</string>
+    <string name="pen">Pen</string>
+    <string name="marker">Highlighter</string>
     <string name="launcher_status_active">Screenshot Assistant is your digital assistant app. Use the assist gesture to take a screenshot.</string>
     <string name="launcher_status_inactive">Screenshot Assistant is not your digital assistant app yet.</string>
     <string name="launcher_hint">Pick it under Settings › Apps › Default apps › Digital assistant app, and turn on \"Use screenshot\" there.</string>
