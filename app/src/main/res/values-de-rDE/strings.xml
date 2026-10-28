@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Screenshot Assistant</string>
+    <string name="launcher_name">Screenshot</string>
     <string name="about">Über</string>
     <string name="error_no_screenshot">Fehler: Screenshot konnte nicht aufgenommen werden</string>
     <string name="license">Lizenz</string>

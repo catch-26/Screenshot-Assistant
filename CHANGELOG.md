@@ -1,5 +1,6 @@
 # Unreleased
 
+- The home screen now shows the app as "Screenshot" so the name is no longer cut off. Settings and the digital assistant picker still show "Screenshot Assistant".
 - Drawing: rebuilt without the ImagePainter library. The toolbar has a new look, the color picker offers 12 colors, the last pen and highlighter colors are remembered, strokes follow the finger more smoothly, and the pen line is twice as thick. ImagePainter and ToggleButtonLayout are removed, so the build no longer needs JitPack.
 - The APK no longer contains the encrypted dependency metadata block that the Android Gradle Plugin adds by default. F-Droid rejects APKs that carry it.
 - Log screen: the content now keeps the same 24dp margin as the other screens instead of running to the screen edge, so text is no longer cut off by rounded display corners.
