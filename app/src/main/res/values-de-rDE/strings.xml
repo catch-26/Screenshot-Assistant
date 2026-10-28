@@ -46,4 +46,13 @@
     <string name="assistant_check_text">Android hat die App für digitale Assistenten zurückgesetzt, oft nach einem Systemupdate. Wähle Screenshot Assistant erneut aus.</string>
     <string name="assistant_check_open_settings">Einstellungen öffnen</string>
     <string name="assistant_check_open_app">App öffnen</string>
+    <string name="save">Speichern</string>
+    <string name="saved_to">Gespeichert in %1$s</string>
+    <string name="already_saved">Bereits gespeichert</string>
+    <string name="not_saved">Nicht gespeichert: %1$s</string>
+    <string name="not_saved_no_access">Nicht gespeichert: kein Zugriff auf den Speicherordner</string>
+    <string name="choose_save_folder_again">Speicherordner bitte erneut wählen</string>
+    <string name="save_folder">Speicherordner</string>
+    <string name="save_folder_change">Ändern</string>
+    <string name="save_folder_default">Standard</string>
 </resources>

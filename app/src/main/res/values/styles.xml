@@ -112,4 +112,6 @@
         <item name="android:tint">?attr/colorOnSurface</item>
     </style>
 
+    <style name="Widget.App.EditorButton.Save" parent="Widget.App.EditorButton.Draw" />
+
 </resources>

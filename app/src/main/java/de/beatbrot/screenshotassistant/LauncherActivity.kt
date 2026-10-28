@@ -15,6 +15,9 @@ import de.beatbrot.screenshotassistant.boot.checkAssistantOnBoot
 import de.beatbrot.screenshotassistant.boot.isDefaultAssistant
 import de.beatbrot.screenshotassistant.databinding.ActivityLauncherBinding
 import de.beatbrot.screenshotassistant.util.ScreenContextAccess
+import de.beatbrot.screenshotassistant.util.saveFolder
+import de.beatbrot.screenshotassistant.util.saveFolderLabel
+import de.beatbrot.screenshotassistant.util.setSaveFolder
 import de.beatbrot.screenshotassistant.util.screenContextAccess
 import de.beatbrot.screenshotassistant.util.screenContextRequestIntent
 import de.beatbrot.screenshotassistant.util.imageFormat
@@ -28,6 +31,12 @@ class LauncherActivity : AppCompatActivity() {
         v.bootCheckSwitch.isChecked = granted
     }
     private val screenContextRequest = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { updateStatus() }
+    private val saveFolderPicker = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { folder ->
+        if (folder != null) {
+            setSaveFolder(folder)
+            updateSaveFolder()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +63,16 @@ class LauncherActivity : AppCompatActivity() {
             }
         }
         initImageSettings()
+        v.saveFolderChangeButton.setOnClickListener {
+            try {
+                saveFolderPicker.launch(sharedPrefs.saveFolder)
+            } catch (e: ActivityNotFoundException) {
+            }
+        }
+        v.saveFolderDefaultButton.setOnClickListener {
+            setSaveFolder(null)
+            updateSaveFolder()
+        }
         v.logsButton.setOnClickListener { startActivity(Intent(this, LogActivity::class.java)) }
         v.header.versionText.text = getString(R.string.version_value, BuildConfig.VERSION_NAME)
         v.aboutButton.setOnClickListener { startActivity(Intent(this, AboutActivity::class.java)) }
@@ -96,6 +115,12 @@ class LauncherActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateStatus()
+        updateSaveFolder()
+    }
+
+    private fun updateSaveFolder() {
+        v.saveFolderText.text = saveFolderLabel()
+        v.saveFolderDefaultButton.visibility = if (sharedPrefs.saveFolder != null) View.VISIBLE else View.GONE
     }
 
     private fun updateStatus() {

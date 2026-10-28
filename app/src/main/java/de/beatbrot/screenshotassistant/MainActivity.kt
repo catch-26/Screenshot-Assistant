@@ -1,5 +1,6 @@
 package de.beatbrot.screenshotassistant
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -13,6 +14,7 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.view.animation.OvershootInterpolator
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.AnimRes
 import androidx.appcompat.app.AppCompatActivity
@@ -21,13 +23,26 @@ import de.beatbrot.screenshotassistant.crop.CropOutsideFadeView
 import de.beatbrot.screenshotassistant.databinding.ActivityMainBinding
 import de.beatbrot.screenshotassistant.sheets.drawsettings.DrawSettingsSheet
 import de.beatbrot.screenshotassistant.util.OpenAnimationListener
+import de.beatbrot.screenshotassistant.util.SaveResult
 import de.beatbrot.screenshotassistant.util.fadeFilter
+import de.beatbrot.screenshotassistant.util.hasSaveAccess
+import de.beatbrot.screenshotassistant.util.saveFolder
+import de.beatbrot.screenshotassistant.util.setSaveFolder
+import de.beatbrot.screenshotassistant.util.sharedPrefs
 import de.beatbrot.screenshotassistant.util.tryExport
 
 class MainActivity : AppCompatActivity() {
     private lateinit var v: ActivityMainBinding
     private val drawSettingsSheet = DrawSettingsSheet()
     private val viewModel by viewModels<ScreenshotActivityViewModel>()
+    private val saveFolderPicker = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { folder ->
+        if (folder == null) {
+            showToast(getString(R.string.not_saved_no_access))
+        } else {
+            setSaveFolder(folder)
+            saveCurrentImage()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,7 +85,9 @@ class MainActivity : AppCompatActivity() {
 
         v.drawButton.setOnClickListener { viewModel.editingMode.value = EditingMode.PAINT }
 
-        v.shareButton.setOnClickListener { shareCurrentImage() }
+        v.shareButton.setOnClickListener { currentImage()?.let { viewModel.shareImage(it) } }
+
+        v.saveButton.setOnClickListener { saveCurrentImage() }
     }
 
     private fun initViewModel() {
@@ -105,6 +122,18 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent.createChooser(intent, baseContext.getString(R.string.share_image)))
         })
 
+        viewModel.saveResult.observe(this, Observer { result ->
+            val message = when (result) {
+                is SaveResult.Saved -> getString(R.string.saved_to, result.folder)
+                SaveResult.AlreadySaved -> getString(R.string.already_saved)
+                SaveResult.NoAccess -> getString(R.string.not_saved_no_access)
+                is SaveResult.Failed -> getString(R.string.not_saved, result.error.localizedMessage ?: result.error.javaClass.simpleName)
+                null -> return@Observer
+            }
+            showToast(message)
+            viewModel.onSaveResultShown()
+        })
+
         viewModel.editingMode.observe(this, Observer { newState ->
             when (newState) {
                 EditingMode.CROP -> {
@@ -131,16 +160,31 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun shareCurrentImage() {
-        val image = when (viewModel.editingMode.value) {
-            EditingMode.PAINT -> v.drawingView.takeIf { it.drawable != null }?.exportImage()
-            else -> v.cropView.getCroppedImage()
+    private fun currentImage(): Bitmap? = when (viewModel.editingMode.value) {
+        EditingMode.PAINT -> v.drawingView.takeIf { it.drawable != null }?.exportImage()
+        else -> v.cropView.getCroppedImage()
+    }
+
+    // A chosen folder can lose its access grant at any time, so it is checked before every save.
+    private fun saveCurrentImage() {
+        if (!hasSaveAccess()) {
+            showToast(getString(R.string.choose_save_folder_again))
+            try {
+                saveFolderPicker.launch(sharedPrefs.saveFolder)
+            } catch (e: ActivityNotFoundException) {
+                showToast(getString(R.string.not_saved_no_access))
+            }
+            return
         }
-        image?.let { viewModel.shareImage(it) }
+        currentImage()?.let { viewModel.saveImage(it) }
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     private fun showActionButtons(visible: Boolean) {
-        listOf(v.shareButton, v.drawButton).forEach { button ->
+        listOf(v.saveButton, v.shareButton, v.drawButton).forEach { button ->
             button.animate().cancel()
             if (visible) {
                 button.visibility = View.VISIBLE

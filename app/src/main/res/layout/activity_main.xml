@@ -35,6 +35,16 @@
     </FrameLayout>
 
     <ImageButton
+        android:id="@+id/saveButton"
+        style="@style/Widget.App.EditorButton.Save"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
+        android:contentDescription="@string/save"
+        android:src="@drawable/ic_save_24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageButton
         android:id="@+id/shareButton"
         style="@style/Widget.App.EditorButton.Share"
         android:layout_marginEnd="16dp"

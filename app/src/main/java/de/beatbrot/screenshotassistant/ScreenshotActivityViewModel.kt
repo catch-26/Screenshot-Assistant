@@ -11,12 +11,16 @@ import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import de.beatbrot.screenshotassistant.draw.DrawStack
 import de.beatbrot.screenshotassistant.util.*
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 val AUTHORITY_NAME = "${BuildConfig.APPLICATION_ID}.fileprovider"
 const val MIME_TYPE = "image/png"
@@ -26,6 +30,14 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
     private val _shareIntent: MutableLiveData<Intent> = MutableLiveData()
     val shareIntent: LiveData<Intent>
         get() = _shareIntent
+
+    private val _saveResult: MutableLiveData<SaveResult?> = MutableLiveData()
+    val saveResult: LiveData<SaveResult?>
+        get() = _saveResult
+
+    private var lastSaved: SavedImage? = null
+
+    private var saving = false
 
     private val context: Context
         get() = getApplication<Application>().baseContext
@@ -57,6 +69,34 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
         }
 
         _shareIntent.postValue(intent)
+    }
+
+    // Pressing Save again only writes a new file if the image, format or quality changed since the last save.
+    fun saveImage(image: Bitmap) {
+        if (saving) {
+            return
+        }
+        val saved = SavedImage(image, imageFormat, imageQuality)
+        if (lastSaved?.matches(saved) == true) {
+            _saveResult.value = SaveResult.AlreadySaved
+            return
+        }
+        saving = true
+        viewModelScope.launch {
+            val fileName = "Screenshot-${currentDateString()}.${saved.format.fileExtension}"
+            val result = withContext(Dispatchers.IO) {
+                context.saveImage(saved.image, saved.format, saved.quality, fileName)
+            }
+            if (result is SaveResult.Saved) {
+                lastSaved = saved
+            }
+            saving = false
+            _saveResult.value = result
+        }
+    }
+
+    fun onSaveResultShown() {
+        _saveResult.value = null
     }
 
     private fun getScreenshotUri(croppedImage: Bitmap): Uri {
@@ -93,4 +133,8 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
             file.deleteRecursively()
         }
     }
+}
+
+private class SavedImage(val image: Bitmap, val format: Bitmap.CompressFormat, val quality: Int) {
+    fun matches(other: SavedImage) = format == other.format && quality == other.quality && image.sameAs(other.image)
 }

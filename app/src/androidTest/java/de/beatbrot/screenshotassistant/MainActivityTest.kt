@@ -73,6 +73,12 @@ class MainActivityTest {
     }
 
     @Test
+    fun testSaveButtonIsShown() {
+        onView(withId(R.id.saveButton))
+            .check(matches(isDisplayed()))
+    }
+
+    @Test
     @Ignore("Messes with other tests")
     fun testShareOpens() {
         onView(withId(R.id.shareButton))
