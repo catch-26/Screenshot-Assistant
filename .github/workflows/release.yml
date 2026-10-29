@@ -116,6 +116,10 @@ jobs:
         run: |
           awk -v code="$VERSION_CODE" -v name="$VERSION" '/^# /{p=($2==code||$2==name)} p&&!/^# /' CHANGELOG.md > notes.md
           LAST_RELEASE=$(git tag -l 'v*' '20*' --sort=-creatordate | grep -v -- '-pre$' | grep -vx "$VERSION" | head -1)
+          if [ -n "$LAST_RELEASE" ]; then
+            CONTRIBUTORS=$(.github/scripts/contributors.sh "$LAST_RELEASE" "$GITHUB_SHA" || true)
+            [ -n "$CONTRIBUTORS" ] && printf '\n%s\n' "$CONTRIBUTORS" >> notes.md
+          fi
           gh release create "$VERSION" dist/* --target "$GITHUB_SHA" --title "$VERSION" --notes-file notes.md --latest --generate-notes ${LAST_RELEASE:+--notes-start-tag "$LAST_RELEASE"}
 
   reproducible:

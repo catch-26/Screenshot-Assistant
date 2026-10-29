@@ -86,5 +86,7 @@ jobs:
             echo "Changes since $LAST_RELEASE:"
             echo
             git log --no-merges --format='- %s' "$LAST_RELEASE..HEAD"
+            CONTRIBUTORS=$(.github/scripts/contributors.sh "$LAST_RELEASE" "$GITHUB_SHA" || true)
+            [ -n "$CONTRIBUTORS" ] && printf '\n%s\n' "$CONTRIBUTORS"
           } > notes.md
           gh release create "$VERSION" dist/* --target "$GITHUB_SHA" --title "$VERSION" --notes-file notes.md --prerelease --latest=false
