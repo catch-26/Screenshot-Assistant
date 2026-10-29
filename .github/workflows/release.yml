@@ -61,6 +61,9 @@ jobs:
             RELEASE=false
           else
             RELEASE=true
+            if [ ! -f "fastlane/metadata/android/en-US/changelogs/$VERSION_CODE.txt" ]; then
+              echo "::warning::fastlane/metadata/android/en-US/changelogs/$VERSION_CODE.txt is missing, F-Droid will show no changelog for $VERSION_NAME"
+            fi
           fi
           echo "release=$RELEASE" >> "$GITHUB_OUTPUT"
 
