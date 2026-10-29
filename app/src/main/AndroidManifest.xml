@@ -26,7 +26,6 @@
         <activity
             android:name=".MainActivity"
             android:excludeFromRecents="true"
-            android:noHistory="true"
             android:theme="@style/AppTheme.Translucent" />
         <activity-alias
             android:name=".EditImageActivity"

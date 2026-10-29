@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.storage.StorageManager
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Log
@@ -12,6 +13,8 @@ import java.io.IOException
 
 const val DEFAULT_SAVE_FOLDER = "Pictures/Screenshots"
 private const val TAG = "ScreenshotAssistant"
+private const val EXTERNAL_STORAGE_AUTHORITY = "com.android.externalstorage.documents"
+private const val PRIMARY_VOLUME = "primary"
 private const val TREE_FLAGS = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
 sealed interface SaveResult {
@@ -28,7 +31,9 @@ fun Context.hasSaveAccess(): Boolean {
     return granted && folderExists(folder)
 }
 
-fun Context.setSaveFolder(folder: Uri?) {
+// Picking Pictures/Screenshots on internal storage is the default folder, so it is stored as the default.
+fun Context.setSaveFolder(picked: Uri?) {
+    val folder = picked?.takeUnless { it.isDefaultSaveFolder }
     val old = sharedPrefs.saveFolder
     if (folder != null) {
         contentResolver.takePersistableUriPermission(folder, TREE_FLAGS)
@@ -42,8 +47,18 @@ fun Context.setSaveFolder(folder: Uri?) {
     sharedPrefs.saveFolder = folder
 }
 
+val Uri.isDefaultSaveFolder: Boolean
+    get() = storageLocation?.let { (volume, path) -> volume == PRIMARY_VOLUME && path.equals(DEFAULT_SAVE_FOLDER, ignoreCase = true) } == true
+
+// Folders on device storage show their path from the storage root, like the default Pictures/Screenshots.
 fun Context.saveFolderLabel(): String {
     val folder = sharedPrefs.saveFolder ?: return DEFAULT_SAVE_FOLDER
+    val (volume, path) = folder.storageLocation ?: return folderName(folder)
+    val volumeName = if (volume == PRIMARY_VOLUME && path.isNotEmpty()) null else storageVolumeName(volume)
+    return listOfNotNull(volumeName, path.ifEmpty { null }).joinToString("/")
+}
+
+private fun Context.folderName(folder: Uri): String {
     val name = try {
         contentResolver.query(folder.rootDocument, arrayOf(DocumentsContract.Document.COLUMN_DISPLAY_NAME), null, null, null)
             ?.use { if (it.moveToFirst()) it.getString(0) else null }
@@ -113,6 +128,22 @@ private fun Context.folderExists(folder: Uri): Boolean = try {
 } catch (e: Exception) {
     false
 }
+
+private fun Context.storageVolumeName(volume: String): String {
+    val volumes = getSystemService(StorageManager::class.java).storageVolumes
+    val match = volumes.firstOrNull { if (volume == PRIMARY_VOLUME) it.isPrimary else it.uuid.equals(volume, ignoreCase = true) }
+    return match?.getDescription(this) ?: volume
+}
+
+// Device storage folders have tree IDs like "primary:Pictures/Screenshots" (volume, then path from its root).
+private val Uri.storageLocation: Pair<String, String>?
+    get() {
+        if (authority != EXTERNAL_STORAGE_AUTHORITY) {
+            return null
+        }
+        val parts = DocumentsContract.getTreeDocumentId(this).split(':', limit = 2)
+        return if (parts.size == 2) parts[0] to parts[1].trim('/') else null
+    }
 
 private val Uri.rootDocument: Uri
     get() = DocumentsContract.buildDocumentUriUsingTree(this, DocumentsContract.getTreeDocumentId(this))

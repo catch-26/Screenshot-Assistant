@@ -8,6 +8,7 @@ import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.os.PowerManager
 import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.util.Log
@@ -40,11 +41,13 @@ class MainActivity : AppCompatActivity() {
     private val drawSettingsSheet = DrawSettingsSheet()
     private val viewModel by viewModels<ScreenshotActivityViewModel>()
     private val saveFolderPicker = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { folder ->
-        if (folder == null) {
+        val image = viewModel.pendingSave
+        viewModel.pendingSave = null
+        if (folder == null || image == null) {
             showToast(getString(R.string.not_saved_no_access))
         } else {
             setSaveFolder(folder)
-            saveCurrentImage()
+            saveImage(image)
         }
     }
     private val closeFormatDrawerOnBack = object : OnBackPressedCallback(false) {
@@ -67,6 +70,15 @@ class MainActivity : AppCompatActivity() {
             viewModel.screenshot?.let { showBackground(it) }
         } else {
             Toast.makeText(baseContext, R.string.error_no_screenshot, Toast.LENGTH_SHORT).show()
+            finish()
+        }
+    }
+
+    // The editor closes once it leaves the screen, except for the folder picker and a screen turned off.
+    override fun onStop() {
+        super.onStop()
+        val screenOn = getSystemService(PowerManager::class.java).isInteractive
+        if (viewModel.pendingSave == null && screenOn && !isChangingConfigurations) {
             finish()
         }
     }
@@ -241,16 +253,22 @@ class MainActivity : AppCompatActivity() {
 
     // A chosen folder can lose its access grant at any time, so it is checked before every save.
     private fun saveCurrentImage() {
-        if (!hasSaveAccess()) {
-            showToast(getString(R.string.choose_save_folder_again))
-            try {
-                saveFolderPicker.launch(sharedPrefs.saveFolder)
-            } catch (e: ActivityNotFoundException) {
-                showToast(getString(R.string.not_saved_no_access))
-            }
+        currentImage()?.let { saveImage(it) }
+    }
+
+    private fun saveImage(image: Bitmap) {
+        if (hasSaveAccess()) {
+            viewModel.saveImage(image)
             return
         }
-        currentImage()?.let { viewModel.saveImage(it) }
+        showToast(getString(R.string.choose_save_folder_again))
+        viewModel.pendingSave = image
+        try {
+            saveFolderPicker.launch(sharedPrefs.saveFolder)
+        } catch (e: ActivityNotFoundException) {
+            viewModel.pendingSave = null
+            showToast(getString(R.string.not_saved_no_access))
+        }
     }
 
     private fun showToast(message: String) {

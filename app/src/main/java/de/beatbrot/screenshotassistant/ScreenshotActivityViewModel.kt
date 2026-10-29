@@ -65,6 +65,9 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
 
     val cropRect = MutableLiveData<Rect?>()
 
+    // The edited image waiting for the folder picker, so it survives leaving the editor for the picker.
+    var pendingSave: Bitmap? = null
+
     fun shareImage(croppedImage: Bitmap) {
         val croppedUri = getScreenshotUri(croppedImage)
 

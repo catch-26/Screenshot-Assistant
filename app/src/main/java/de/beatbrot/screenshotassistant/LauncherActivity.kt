@@ -15,6 +15,7 @@ import de.beatbrot.screenshotassistant.boot.checkAssistantOnBoot
 import de.beatbrot.screenshotassistant.boot.isDefaultAssistant
 import de.beatbrot.screenshotassistant.databinding.ActivityLauncherBinding
 import de.beatbrot.screenshotassistant.util.ScreenContextAccess
+import de.beatbrot.screenshotassistant.util.isDefaultSaveFolder
 import de.beatbrot.screenshotassistant.util.saveFolder
 import de.beatbrot.screenshotassistant.util.saveFolderLabel
 import de.beatbrot.screenshotassistant.util.setSaveFolder
@@ -119,6 +120,9 @@ class LauncherActivity : AppCompatActivity() {
     }
 
     private fun updateSaveFolder() {
+        if (sharedPrefs.saveFolder?.isDefaultSaveFolder == true) {
+            setSaveFolder(null)
+        }
         v.saveFolderText.text = saveFolderLabel()
         v.saveFolderDefaultButton.visibility = if (sharedPrefs.saveFolder != null) View.VISIBLE else View.GONE
     }
