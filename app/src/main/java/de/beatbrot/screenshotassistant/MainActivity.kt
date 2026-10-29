@@ -135,7 +135,7 @@ class MainActivity : AppCompatActivity() {
             row.setOnClickListener { viewModel.format.value = format }
         }
 
-        // Taps outside the drawer only close it; they never reach the crop view or buttons.
+        // Taps on the screenshot only close the drawer; the buttons below it stay usable.
         v.formatDrawerScrim.setOnClickListener { viewModel.formatDrawerOpen.value = false }
 
         v.formatQualitySlider.addOnChangeListener { _, value, fromUser ->
@@ -181,8 +181,9 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.saveResult.observe(this, Observer { result ->
             val message = when (result) {
-                is SaveResult.Saved -> getString(R.string.saved_to, result.folder)
-                SaveResult.AlreadySaved -> getString(R.string.already_saved)
+                is SaveResult.Saved -> getString(R.string.saved_to, result.format.name, result.folder)
+                is SaveResult.AlreadySaved -> getString(R.string.already_saved, result.format.name)
+                SaveResult.StillSaving -> getString(R.string.still_saving)
                 SaveResult.NoAccess -> getString(R.string.not_saved_no_access)
                 is SaveResult.Failed -> getString(R.string.not_saved, result.error.localizedMessage ?: result.error.javaClass.simpleName)
                 null -> return@Observer
@@ -253,7 +254,12 @@ class MainActivity : AppCompatActivity() {
 
     // A chosen folder can lose its access grant at any time, so it is checked before every save.
     private fun saveCurrentImage() {
-        currentImage()?.let { saveImage(it) }
+        val image = currentImage()
+        if (image == null) {
+            showToast(getString(R.string.not_saved_no_image))
+            return
+        }
+        saveImage(image)
     }
 
     private fun saveImage(image: Bitmap) {
