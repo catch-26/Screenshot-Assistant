@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Screenshot Assistant</string>
     <string name="launcher_name">Screenshot</string>
     <string name="copyright" translatable="false">© beatbrot 2019 · catch-26 2026</string>
@@ -25,6 +25,7 @@
     <string name="launcher_intro">Set as the default assistant app to take screenshots with the assist gesture.</string>
     <string name="launcher_status_inactive">Also turn on \"Use screenshot\" there.</string>
     <string name="launcher_open">Open</string>
+    <string name="launcher_selected" tools:ignore="MissingTranslation">Selected as the default assistant app</string>
     <string name="launcher_status_no_screen_access">Android does not let the app see the screen yet.</string>
     <string name="launcher_status_screen_access_denied">Screen access was denied. Allow it in the digital assistant settings.</string>
     <string name="launcher_screen_access">Allow screen access</string>
