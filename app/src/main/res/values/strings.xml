@@ -22,8 +22,8 @@
     <string name="pick_color">Pick a color</string>
     <string name="pen">Pen</string>
     <string name="marker">Highlighter</string>
-    <string name="launcher_intro">A screenshot editor, not a digital assistant: the assist gesture opens the current screen to crop, draw on, save or share.</string>
-    <string name="launcher_status_inactive">To use the gesture, set this app as the digital assistant app and turn on \"Use screenshot\" there.</string>
+    <string name="launcher_intro">Set as the default assistant app to take screenshots with the assist gesture.</string>
+    <string name="launcher_status_inactive">Also turn on \"Use screenshot\" there.</string>
     <string name="launcher_open">Open</string>
     <string name="launcher_status_no_screen_access">Android does not let the app see the screen yet.</string>
     <string name="launcher_status_screen_access_denied">Screen access was denied. Allow it in the digital assistant settings.</string>

@@ -19,8 +19,8 @@
     <string name="pick_color">Farbe wählen</string>
     <string name="pen">Stift</string>
     <string name="marker">Textmarker</string>
-    <string name="launcher_intro">Ein Screenshot-Editor, kein digitaler Assistent: Die Assistenten-Geste öffnet den aktuellen Bildschirm zum Zuschneiden, Bemalen, Speichern oder Teilen.</string>
-    <string name="launcher_status_inactive">Für die Geste diese App als App für digitale Assistenten wählen und dort \"Screenshot verwenden\" aktivieren.</string>
+    <string name="launcher_intro">Als Standard-Assistenten-App festlegen, um Screenshots mit der Assistenten-Geste aufzunehmen.</string>
+    <string name="launcher_status_inactive">Aktiviere dort auch \"Screenshot verwenden\".</string>
     <string name="launcher_open">Öffnen</string>
     <string name="launcher_status_no_screen_access">Android lässt die App den Bildschirm noch nicht sehen.</string>
     <string name="launcher_status_screen_access_denied">Der Bildschirmzugriff wurde abgelehnt. Erlaube ihn in den Assistenten-Einstellungen.</string>
