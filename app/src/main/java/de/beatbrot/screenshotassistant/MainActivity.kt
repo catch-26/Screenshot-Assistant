@@ -22,8 +22,11 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.AnimRes
+import androidx.annotation.MainThread
+import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import de.beatbrot.screenshotassistant.crop.CropOutsideFadeView
 import de.beatbrot.screenshotassistant.databinding.ActivityMainBinding
 import de.beatbrot.screenshotassistant.sheets.drawsettings.DrawSettingsSheet
@@ -35,6 +38,10 @@ import de.beatbrot.screenshotassistant.util.saveFolder
 import de.beatbrot.screenshotassistant.util.setSaveFolder
 import de.beatbrot.screenshotassistant.util.sharedPrefs
 import de.beatbrot.screenshotassistant.util.tryExport
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
     private lateinit var v: ActivityMainBinding
@@ -66,12 +73,22 @@ class MainActivity : AppCompatActivity() {
             Intent.ACTION_EDIT -> intent.data
             else -> intent.getParcelableExtra("screenshot", Uri::class.java)
         }
-        if (imgPath != null && loadInitialImage(imgPath)) {
-            viewModel.screenshot?.let { showBackground(it) }
-        } else {
-            Toast.makeText(baseContext, R.string.error_no_screenshot, Toast.LENGTH_SHORT).show()
-            finish()
+        if (imgPath == null) {
+            closeWithoutScreenshot()
+            return
         }
+        lifecycleScope.launch {
+            if (loadInitialImage(imgPath)) {
+                viewModel.screenshot?.let { showBackground(it) }
+            } else {
+                closeWithoutScreenshot()
+            }
+        }
+    }
+
+    private fun closeWithoutScreenshot() {
+        Toast.makeText(baseContext, R.string.error_no_screenshot, Toast.LENGTH_SHORT).show()
+        finish()
     }
 
     // The editor closes once it leaves the screen, except for the folder picker and a screen turned off.
@@ -247,12 +264,14 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    @MainThread
     private fun currentImage(): Bitmap? = when (viewModel.editingMode.value) {
         EditingMode.PAINT -> v.drawingView.takeIf { it.drawable != null }?.exportImage()
         else -> v.cropView.getCroppedImage()
     }
 
     // A chosen folder can lose its access grant at any time, so it is checked before every save.
+    @MainThread
     private fun saveCurrentImage() {
         val image = currentImage()
         if (image == null) {
@@ -352,12 +371,14 @@ class MainActivity : AppCompatActivity() {
         view.startAnimation(anim)
     }
 
-    private fun loadInitialImage(uri: Uri): Boolean {
+    private suspend fun loadInitialImage(uri: Uri): Boolean {
         if (viewModel.currentBitmap.value != null) {
             return true
         }
         val bitmap = try {
-            decodeImage(uri)
+            withContext(Dispatchers.IO) { decodeImage(uri) }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "Could not load image $uri", e)
             return false
@@ -368,6 +389,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Images from other apps can be camera photos, so large ones are scaled down to keep the editor responsive.
+    @WorkerThread
     private fun decodeImage(uri: Uri): Bitmap {
         val source = ImageDecoder.createSource(contentResolver, uri)
         return ImageDecoder.decodeBitmap(source) { decoder, info, _ ->

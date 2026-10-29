@@ -7,6 +7,8 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.net.Uri
+import androidx.annotation.MainThread
+import androidx.annotation.WorkerThread
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -82,21 +84,23 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
     }
 
     // Pressing Save again only writes a new file if the image, format or quality changed since the last save.
+    @MainThread
     fun saveImage(image: Bitmap) {
         if (saving) {
             _saveResult.value = SaveResult.StillSaving
             return
         }
         val saved = SavedImage(image, imageFormat, imageQuality)
-        if (lastSaved?.matches(saved) == true) {
-            _saveResult.value = SaveResult.AlreadySaved(saved.format)
-            return
-        }
+        val previous = lastSaved
         saving = true
         viewModelScope.launch {
             val fileName = "Screenshot-${currentDateString()}.${saved.format.fileExtension}"
             val result = withContext(Dispatchers.IO) {
-                context.saveImage(saved.image, saved.format, saved.quality, fileName)
+                if (previous?.matches(saved) == true) {
+                    SaveResult.AlreadySaved(saved.format)
+                } else {
+                    context.saveImage(saved.image, saved.format, saved.quality, fileName)
+                }
             }
             if (result is SaveResult.Saved) {
                 lastSaved = saved
@@ -147,5 +151,6 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
 }
 
 private class SavedImage(val image: Bitmap, val format: Bitmap.CompressFormat, val quality: Int) {
+    @WorkerThread
     fun matches(other: SavedImage) = format == other.format && quality == other.quality && image.sameAs(other.image)
 }
