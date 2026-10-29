@@ -10,8 +10,8 @@ android {
         applicationId "de.paradox.screenshotassistant"
         minSdk 34
         targetSdk 37
-        versionCode 261012
-        versionName "v26.10.12"
+        versionCode 261015
+        versionName "v26.10.15"
         if (project.hasProperty('versionNameOverride')) {
             versionName project.property('versionNameOverride')
             versionCode project.property('versionCodeOverride').toInteger()

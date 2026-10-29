@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Screenshot Assistant</string>
     <string name="launcher_name">Screenshot</string>
     <string name="copyright" translatable="false">© beatbrot 2019 · catch-26 2026</string>
@@ -22,13 +22,12 @@
     <string name="pick_color">Pick a color</string>
     <string name="pen">Pen</string>
     <string name="marker">Highlighter</string>
-    <string name="launcher_status_active">Screenshot Assistant is your digital assistant app. Use the assist gesture to take a screenshot.</string>
-    <string name="launcher_status_inactive">Screenshot Assistant is not your digital assistant app yet.</string>
-    <string name="launcher_hint">Pick it under Settings › Apps › Default apps › Digital assistant app, and turn on \"Use screenshot\" there.</string>
-    <string name="launcher_assistant_settings">Open digital assistant settings</string>
-    <string name="launcher_status_no_screen_access">Screenshot Assistant is your digital assistant app, but Android does not let it see the screen yet. Tap \"Allow screen access\".</string>
-    <string name="launcher_status_screen_access_denied">Screenshot Assistant is your digital assistant app, but screen access was denied. Allow it in the digital assistant settings.</string>
-    <string name="launcher_status_unknown">Screenshot Assistant is your digital assistant app.</string>
+    <string name="launcher_intro">Set as the default assistant app to take screenshots with the assist gesture.</string>
+    <string name="launcher_status_inactive">Also turn on \"Use screenshot\" there.</string>
+    <string name="launcher_open">Open</string>
+    <string name="launcher_selected" tools:ignore="MissingTranslation">Selected as the default assistant app</string>
+    <string name="launcher_status_no_screen_access">Android does not let the app see the screen yet.</string>
+    <string name="launcher_status_screen_access_denied">Screen access was denied. Allow it in the digital assistant settings.</string>
     <string name="launcher_screen_access">Allow screen access</string>
     <string name="no_screen_access">Screenshot Assistant may not see the screen. Open the app to allow screen access.</string>
     <string name="version_value">Version %1$s</string>
@@ -50,8 +49,10 @@
     <string name="assistant_check_open_settings">Open settings</string>
     <string name="assistant_check_open_app">Open app</string>
     <string name="save">Save</string>
-    <string name="saved_to">Saved to %1$s</string>
-    <string name="already_saved">Already saved</string>
+    <string name="saved_to">Saved as %1$s to %2$s</string>
+    <string name="already_saved">Already saved as %1$s</string>
+    <string name="still_saving">Still saving</string>
+    <string name="not_saved_no_image">Not saved: no image to save</string>
     <string name="not_saved">Not saved: %1$s</string>
     <string name="not_saved_no_access">Not saved: no access to the save folder</string>
     <string name="choose_save_folder_again">Choose the save folder again</string>

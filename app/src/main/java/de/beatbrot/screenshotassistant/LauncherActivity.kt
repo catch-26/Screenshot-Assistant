@@ -15,6 +15,7 @@ import de.beatbrot.screenshotassistant.boot.checkAssistantOnBoot
 import de.beatbrot.screenshotassistant.boot.isDefaultAssistant
 import de.beatbrot.screenshotassistant.databinding.ActivityLauncherBinding
 import de.beatbrot.screenshotassistant.util.ScreenContextAccess
+import de.beatbrot.screenshotassistant.util.isDefaultSaveFolder
 import de.beatbrot.screenshotassistant.util.saveFolder
 import de.beatbrot.screenshotassistant.util.saveFolderLabel
 import de.beatbrot.screenshotassistant.util.setSaveFolder
@@ -46,6 +47,7 @@ class LauncherActivity : AppCompatActivity() {
         v.assistantSettingsButton.setOnClickListener {
             openSettings(Intent(Settings.ACTION_VOICE_INPUT_SETTINGS), Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
         }
+        v.introText.addOnLayoutChangeListener { _, _, top, _, bottom, _, _, _, _ -> matchCheckToIntro(bottom - top) }
         v.screenAccessButton.setOnClickListener {
             screenContextRequestIntent()?.let {
                 try {
@@ -119,6 +121,9 @@ class LauncherActivity : AppCompatActivity() {
     }
 
     private fun updateSaveFolder() {
+        if (sharedPrefs.saveFolder?.isDefaultSaveFolder == true) {
+            setSaveFolder(null)
+        }
         v.saveFolderText.text = saveFolderLabel()
         v.saveFolderDefaultButton.visibility = if (sharedPrefs.saveFolder != null) View.VISIBLE else View.GONE
     }
@@ -127,16 +132,26 @@ class LauncherActivity : AppCompatActivity() {
         val isAssistant = isDefaultAssistant
         if (isAssistant) cancelAssistantNotification()
         val access = if (isAssistant) screenContextAccess() else ScreenContextAccess.UNKNOWN
-        v.statusText.setText(
-            when {
-                !isAssistant -> R.string.launcher_status_inactive
-                access == ScreenContextAccess.GRANTED -> R.string.launcher_status_active
-                access == ScreenContextAccess.REQUESTABLE -> R.string.launcher_status_no_screen_access
-                access == ScreenContextAccess.UNREQUESTABLE -> R.string.launcher_status_screen_access_denied
-                else -> R.string.launcher_status_unknown
-            }
-        )
+        val status = when {
+            !isAssistant -> R.string.launcher_status_inactive
+            access == ScreenContextAccess.REQUESTABLE -> R.string.launcher_status_no_screen_access
+            access == ScreenContextAccess.UNREQUESTABLE -> R.string.launcher_status_screen_access_denied
+            else -> null
+        }
+        v.setupWarning.visibility = if (status != null) View.VISIBLE else View.GONE
+        status?.let { v.statusText.setText(it) }
         v.screenAccessButton.visibility = if (access == ScreenContextAccess.REQUESTABLE) View.VISIBLE else View.GONE
+        v.assistantCheck.visibility = if (isAssistant) View.VISIBLE else View.INVISIBLE
+    }
+
+    // The check mark is as tall as the setup sentence, which can wrap to more lines on narrow screens.
+    private fun matchCheckToIntro(height: Int) {
+        val params = v.assistantCheck.layoutParams
+        if (height > 0 && params.height != height) {
+            params.width = height
+            params.height = height
+            v.assistantCheck.post { v.assistantCheck.layoutParams = params }
+        }
     }
 
     private fun openSettings(vararg intents: Intent) {

@@ -5,6 +5,13 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <permission
+        android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        tools:node="remove" />
+    <uses-permission
+        android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        tools:node="remove" />
+
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
@@ -26,7 +33,6 @@
         <activity
             android:name=".MainActivity"
             android:excludeFromRecents="true"
-            android:noHistory="true"
             android:theme="@style/AppTheme.Translucent" />
         <activity-alias
             android:name=".EditImageActivity"

@@ -67,6 +67,9 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
 
     val cropRect = MutableLiveData<Rect?>()
 
+    // The edited image waiting for the folder picker, so it survives leaving the editor for the picker.
+    var pendingSave: Bitmap? = null
+
     fun shareImage(croppedImage: Bitmap) {
         val croppedUri = getScreenshotUri(croppedImage)
 
@@ -84,6 +87,7 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
     @MainThread
     fun saveImage(image: Bitmap) {
         if (saving) {
+            _saveResult.value = SaveResult.StillSaving
             return
         }
         val saved = SavedImage(image, imageFormat, imageQuality)
@@ -93,7 +97,7 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
             val fileName = "Screenshot-${currentDateString()}.${saved.format.fileExtension}"
             val result = withContext(Dispatchers.IO) {
                 if (previous?.matches(saved) == true) {
-                    SaveResult.AlreadySaved
+                    SaveResult.AlreadySaved(saved.format)
                 } else {
                     context.saveImage(saved.image, saved.format, saved.quality, fileName)
                 }
