@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="app/src/main/ic_launcher-web.png" alt="Screenshot Assistant" width="20%">
+  <img src="fastlane/metadata/android/en-US/images/icon.png" alt="Screenshot Assistant" width="20%">
 </p>
 <h3 align="center">Screenshot Assistant</h3>
 
