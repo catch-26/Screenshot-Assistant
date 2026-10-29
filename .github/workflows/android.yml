@@ -21,6 +21,8 @@ jobs:
             grep -nE "^e: |error:|FAILED|Could not|Lint found" build.log | head -30
             echo "----- lint errors -----"
             grep -h -A3 ": Error:" app/build/intermediates/lint_intermediate_text_report/*/*/lint-results-*.txt 2>/dev/null | head -60
+            echo "----- lint error details -----"
+            python3 .github/lint_errors.py app/build/reports/lint-results-debug.sarif 2>&1 | head -80
             echo "----- tail -----"
             tail -15 build.log
           } > summary.txt
