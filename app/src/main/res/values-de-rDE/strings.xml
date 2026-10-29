@@ -45,8 +45,10 @@
     <string name="assistant_check_open_settings">Einstellungen öffnen</string>
     <string name="assistant_check_open_app">App öffnen</string>
     <string name="save">Speichern</string>
-    <string name="saved_to">Gespeichert in %1$s</string>
-    <string name="already_saved">Bereits gespeichert</string>
+    <string name="saved_to">Als %1$s gespeichert in %2$s</string>
+    <string name="already_saved">Bereits als %1$s gespeichert</string>
+    <string name="still_saving">Wird noch gespeichert</string>
+    <string name="not_saved_no_image">Nicht gespeichert: kein Bild vorhanden</string>
     <string name="not_saved">Nicht gespeichert: %1$s</string>
     <string name="not_saved_no_access">Nicht gespeichert: kein Zugriff auf den Speicherordner</string>
     <string name="choose_save_folder_again">Speicherordner bitte erneut wählen</string>

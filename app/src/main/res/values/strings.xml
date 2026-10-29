@@ -48,8 +48,10 @@
     <string name="assistant_check_open_settings">Open settings</string>
     <string name="assistant_check_open_app">Open app</string>
     <string name="save">Save</string>
-    <string name="saved_to">Saved to %1$s</string>
-    <string name="already_saved">Already saved</string>
+    <string name="saved_to">Saved as %1$s to %2$s</string>
+    <string name="already_saved">Already saved as %1$s</string>
+    <string name="still_saving">Still saving</string>
+    <string name="not_saved_no_image">Not saved: no image to save</string>
     <string name="not_saved">Not saved: %1$s</string>
     <string name="not_saved_no_access">Not saved: no access to the save folder</string>
     <string name="choose_save_folder_again">Choose the save folder again</string>

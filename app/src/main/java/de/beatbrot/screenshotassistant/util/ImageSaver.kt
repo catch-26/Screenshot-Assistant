@@ -18,8 +18,9 @@ private const val PRIMARY_VOLUME = "primary"
 private const val TREE_FLAGS = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
 sealed interface SaveResult {
-    data class Saved(val folder: String) : SaveResult
-    data object AlreadySaved : SaveResult
+    data class Saved(val folder: String, val format: Bitmap.CompressFormat) : SaveResult
+    data class AlreadySaved(val format: Bitmap.CompressFormat) : SaveResult
+    data object StillSaving : SaveResult
     data object NoAccess : SaveResult
     data class Failed(val error: Exception) : SaveResult
 }
@@ -77,7 +78,7 @@ fun Context.saveImage(image: Bitmap, format: Bitmap.CompressFormat, quality: Int
             null -> saveToMediaStore(image, format, quality, fileName)
             else -> saveToFolder(folder, image, format, quality, fileName)
         }
-        SaveResult.Saved(saveFolderLabel())
+        SaveResult.Saved(saveFolderLabel(), format)
     } catch (e: Exception) {
         Log.e(TAG, "Could not save $fileName", e)
         SaveResult.Failed(e)

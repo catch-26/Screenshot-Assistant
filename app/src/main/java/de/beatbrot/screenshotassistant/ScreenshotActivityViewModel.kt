@@ -84,11 +84,12 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
     // Pressing Save again only writes a new file if the image, format or quality changed since the last save.
     fun saveImage(image: Bitmap) {
         if (saving) {
+            _saveResult.value = SaveResult.StillSaving
             return
         }
         val saved = SavedImage(image, imageFormat, imageQuality)
         if (lastSaved?.matches(saved) == true) {
-            _saveResult.value = SaveResult.AlreadySaved
+            _saveResult.value = SaveResult.AlreadySaved(saved.format)
             return
         }
         saving = true
