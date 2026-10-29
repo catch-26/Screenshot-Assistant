@@ -49,7 +49,7 @@
                         android:layout_marginStart="16dp"
                         android:contentDescription="@string/launcher_selected"
                         android:scaleType="fitCenter"
-                        android:src="@drawable/ic_check_black_24dp"
+                        android:src="@drawable/ic_check_circle_24dp"
                         android:visibility="invisible"
                         app:tint="?attr/colorPrimary" />
                 </LinearLayout>
