@@ -120,11 +120,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         formatRows.forEach { (row, format) ->
-            row.setOnClickListener {
-                viewModel.format.value = format
-                viewModel.formatDrawerOpen.value = false
-            }
+            row.setOnClickListener { viewModel.format.value = format }
         }
+
+        // Taps outside the drawer only close it; they never reach the crop view or buttons.
+        v.formatDrawerScrim.setOnClickListener { viewModel.formatDrawerOpen.value = false }
 
         v.formatQualitySlider.addOnChangeListener { _, value, fromUser ->
             if (fromUser) {
@@ -200,6 +200,7 @@ class MainActivity : AppCompatActivity() {
             }
             TransitionManager.beginDelayedTransition(v.root, AutoTransition().setDuration(FORMAT_DRAWER_DURATION))
             v.formatDrawer.visibility = if (open) View.VISIBLE else View.GONE
+            v.formatDrawerScrim.visibility = v.formatDrawer.visibility
             v.formatChip.setCompoundDrawablesRelativeWithIntrinsicBounds(
                 0, 0, if (open) R.drawable.ic_expand_less_18dp else R.drawable.ic_expand_more_18dp, 0
             )
