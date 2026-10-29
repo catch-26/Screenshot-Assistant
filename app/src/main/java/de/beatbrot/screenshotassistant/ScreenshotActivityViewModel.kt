@@ -7,6 +7,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.net.Uri
+import androidx.annotation.MainThread
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -79,6 +80,7 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
     }
 
     // Pressing Save again only writes a new file if the image, format or quality changed since the last save.
+    @MainThread
     fun saveImage(image: Bitmap) {
         if (saving) {
             return

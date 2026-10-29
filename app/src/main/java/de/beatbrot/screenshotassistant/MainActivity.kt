@@ -21,6 +21,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.AnimRes
+import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -249,12 +250,14 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    @MainThread
     private fun currentImage(): Bitmap? = when (viewModel.editingMode.value) {
         EditingMode.PAINT -> v.drawingView.takeIf { it.drawable != null }?.exportImage()
         else -> v.cropView.getCroppedImage()
     }
 
     // A chosen folder can lose its access grant at any time, so it is checked before every save.
+    @MainThread
     private fun saveCurrentImage() {
         if (!hasSaveAccess()) {
             showToast(getString(R.string.choose_save_folder_again))
