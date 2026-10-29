@@ -1,0 +1,5 @@
+- Start screen says what the app is; setup hints only show while something is missing.
+- Format drawer floats above the screenshot and stays open while trying formats.
+- Save folder shows its full path.
+- Removed an unused permission.
+- Signed with a new key.

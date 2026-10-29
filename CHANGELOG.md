@@ -1,3 +1,11 @@
+# v26.10.15 (2026-10-29)
+
+- Start screen: the top card now says in one sentence what the app is. Setup hints appear only while something is missing, and the digital assistant settings button sits inside that hint as "Open".
+- Editor: the format drawer floats above the screenshot instead of shrinking it, stays open while trying PNG, JPEG and WEBP, and is less transparent.
+- Save folder: the start screen shows the full path of the save folder, and edits are kept while picking a folder.
+- Removed an unused permission that androidx.core added to the app.
+- Signed with a new key.
+
 # v26.10.12 (2026-10-29)
 
 - New application ID de.paradox.screenshotassistant. Android installs it as a new app next to the old one.
