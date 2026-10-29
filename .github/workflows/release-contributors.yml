@@ -1,0 +1,39 @@
+name: Release contributors
+
+# Adds the "Contributors:" line to existing releases that have none,
+# so GitHub shows their Contributors section. Run by hand.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Add contributors to release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PREV=""
+          for TAG in $(git tag -l 'v*' '20*' --sort=creatordate); do
+            if gh release view "$TAG" --json body --jq .body > body.md 2>/dev/null && ! grep -q '^Contributors:' body.md; then
+              if [ -n "$PREV" ]; then
+                CONTRIBUTORS=$(.github/scripts/contributors.sh "$PREV" "$TAG" || true)
+              else
+                CONTRIBUTORS="Contributors: @claude"
+              fi
+              if [ -n "$CONTRIBUTORS" ]; then
+                printf '\n%s\n' "$CONTRIBUTORS" >> body.md
+                gh release edit "$TAG" --notes-file body.md
+                echo "$TAG: $CONTRIBUTORS"
+              fi
+            fi
+            case "$TAG" in *-pre) ;; *) PREV=$TAG ;; esac
+          done
