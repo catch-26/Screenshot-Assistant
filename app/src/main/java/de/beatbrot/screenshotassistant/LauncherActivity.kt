@@ -131,16 +131,16 @@ class LauncherActivity : AppCompatActivity() {
         val isAssistant = isDefaultAssistant
         if (isAssistant) cancelAssistantNotification()
         val access = if (isAssistant) screenContextAccess() else ScreenContextAccess.UNKNOWN
-        v.statusText.setText(
-            when {
-                !isAssistant -> R.string.launcher_status_inactive
-                access == ScreenContextAccess.GRANTED -> R.string.launcher_status_active
-                access == ScreenContextAccess.REQUESTABLE -> R.string.launcher_status_no_screen_access
-                access == ScreenContextAccess.UNREQUESTABLE -> R.string.launcher_status_screen_access_denied
-                else -> R.string.launcher_status_unknown
-            }
-        )
+        val status = when {
+            !isAssistant -> R.string.launcher_status_inactive
+            access == ScreenContextAccess.REQUESTABLE -> R.string.launcher_status_no_screen_access
+            access == ScreenContextAccess.UNREQUESTABLE -> R.string.launcher_status_screen_access_denied
+            else -> null
+        }
+        v.setupWarning.visibility = if (status != null) View.VISIBLE else View.GONE
+        status?.let { v.statusText.setText(it) }
         v.screenAccessButton.visibility = if (access == ScreenContextAccess.REQUESTABLE) View.VISIBLE else View.GONE
+        v.assistantSettingsButton.visibility = if (access == ScreenContextAccess.REQUESTABLE) View.GONE else View.VISIBLE
     }
 
     private fun openSettings(vararg intents: Intent) {

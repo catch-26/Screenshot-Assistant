@@ -30,36 +30,46 @@
                 android:padding="16dp">
 
                 <TextView
-                    android:id="@+id/statusText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:text="@string/launcher_intro"
                     android:textAppearance="?attr/textAppearanceBody1" />
 
-                <TextView
+                <LinearLayout
+                    android:id="@+id/setupWarning"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:alpha="0.7"
-                    android:text="@string/launcher_hint"
-                    android:textAppearance="?attr/textAppearanceBody2" />
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/statusText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:alpha="0.7"
+                        android:textAppearance="?attr/textAppearanceBody2" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/screenAccessButton"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:text="@string/launcher_screen_access"
+                        android:visibility="gone" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/assistantSettingsButton"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:text="@string/launcher_open" />
+                </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/screenAccessButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/launcher_screen_access"
-            android:visibility="gone" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/assistantSettingsButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/launcher_assistant_settings" />
         <com.google.android.material.card.MaterialCardView
             style="@style/AppTheme.Card"
             android:layout_width="match_parent"
