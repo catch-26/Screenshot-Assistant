@@ -52,8 +52,6 @@ android {
 
     lint {
         disable 'HighAppVersionCode'
-        textReport true
-        textOutput file('stdout')
     }
 
     compileOptions {
