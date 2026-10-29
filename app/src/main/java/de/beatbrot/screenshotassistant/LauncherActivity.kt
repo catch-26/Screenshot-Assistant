@@ -47,6 +47,7 @@ class LauncherActivity : AppCompatActivity() {
         v.assistantSettingsButton.setOnClickListener {
             openSettings(Intent(Settings.ACTION_VOICE_INPUT_SETTINGS), Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
         }
+        v.introText.addOnLayoutChangeListener { _, _, top, _, bottom, _, _, _, _ -> matchCheckToIntro(bottom - top) }
         v.screenAccessButton.setOnClickListener {
             screenContextRequestIntent()?.let {
                 try {
@@ -140,7 +141,17 @@ class LauncherActivity : AppCompatActivity() {
         v.setupWarning.visibility = if (status != null) View.VISIBLE else View.GONE
         status?.let { v.statusText.setText(it) }
         v.screenAccessButton.visibility = if (access == ScreenContextAccess.REQUESTABLE) View.VISIBLE else View.GONE
-        v.assistantSettingsButton.visibility = if (access == ScreenContextAccess.REQUESTABLE) View.GONE else View.VISIBLE
+        v.assistantCheck.visibility = if (isAssistant) View.VISIBLE else View.INVISIBLE
+    }
+
+    // The check mark is as tall as the setup sentence, which can wrap to more lines on narrow screens.
+    private fun matchCheckToIntro(height: Int) {
+        val params = v.assistantCheck.layoutParams
+        if (height > 0 && params.height != height) {
+            params.width = height
+            params.height = height
+            v.assistantCheck.post { v.assistantCheck.layoutParams = params }
+        }
     }
 
     private fun openSettings(vararg intents: Intent) {
