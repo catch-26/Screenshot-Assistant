@@ -209,16 +209,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     // The cropper shows the full screenshot with the edits painted on, so the crop can grow back out.
-    // The crop is set again once laid out, because only then does the cropper zoom in on it.
+    // A crop from before the edit is set again once laid out, because only then does the cropper zoom in on it.
     private fun showCropper() {
         val screenshot = viewModel.screenshot ?: return
         v.cropView.findViewById<View>(com.canhub.cropper.R.id.ImageView_image).clearAnimation()
         v.cropView.setImageBitmap(viewModel.drawStack.paintedOnto(screenshot))
-        val crop = viewModel.cropRect ?: Rect(v.cropView.wholeImageRect)
-        v.cropView.cropRect = crop
+        val crop = viewModel.cropRect
+        v.cropView.cropRect = crop ?: Rect(v.cropView.wholeImageRect)
         v.cropView.post {
             v.cropView.requestLayout()
-            v.cropView.post { v.cropView.cropRect = crop }
+            if (crop != null) {
+                v.cropView.post { v.cropView.cropRect = crop }
+            }
         }
         animateImageView(v.cropView)
     }
