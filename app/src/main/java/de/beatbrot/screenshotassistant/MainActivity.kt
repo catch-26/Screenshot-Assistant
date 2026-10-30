@@ -27,7 +27,6 @@ import androidx.annotation.AnimRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import de.beatbrot.screenshotassistant.crop.CropOutsideFadeView
-import de.beatbrot.screenshotassistant.crop.zoomToCropWindow
 import de.beatbrot.screenshotassistant.databinding.ActivityMainBinding
 import de.beatbrot.screenshotassistant.sheets.drawsettings.DrawSettingsSheet
 import de.beatbrot.screenshotassistant.util.OpenAnimationListener
@@ -107,7 +106,6 @@ class MainActivity : AppCompatActivity() {
         v.cropView.setOnSetImageUriCompleteListener { view, _, _ ->
             view.cropRect = Rect(view.wholeImageRect)
         }
-        v.cropView.setOnCropWindowChangedListener { v.cropView.zoomToCropWindow(CROP_ZOOM_FILL) }
 
         v.drawButton.setOnClickListener { viewModel.editingMode.value = EditingMode.PAINT }
 
@@ -213,13 +211,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     // The cropper shows the full screenshot with the edits painted on, so the crop can grow back out.
+    // A crop from before the edit is set again once laid out, because only then does the cropper zoom in on it.
     private fun showCropper() {
         val screenshot = viewModel.screenshot ?: return
+        v.cropView.findViewById<View>(com.canhub.cropper.R.id.ImageView_image).clearAnimation()
         v.cropView.setImageBitmap(viewModel.drawStack.paintedOnto(screenshot))
-        v.cropView.cropRect = viewModel.cropRect ?: Rect(v.cropView.wholeImageRect)
+        val crop = viewModel.cropRect
+        v.cropView.cropRect = crop ?: Rect(v.cropView.wholeImageRect)
         v.cropView.post {
             v.cropView.requestLayout()
-            v.cropView.post { v.cropView.zoomToCropWindow(CROP_ZOOM_FILL) }
+            if (crop != null) {
+                v.cropView.post { v.cropView.cropRect = crop }
+            }
         }
         animateImageView(v.cropView, CROPPER_START_SCALE, DecelerateInterpolator())
     }
@@ -383,6 +386,5 @@ class MainActivity : AppCompatActivity() {
         const val FORMAT_DRAWER_DURATION = 200L
         const val CROPPER_START_SCALE = 0.95F
         const val PAINTER_START_SCALE = 1.3F
-        const val CROP_ZOOM_FILL = 0.9F
     }
 }
