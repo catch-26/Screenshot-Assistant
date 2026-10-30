@@ -30,6 +30,7 @@ import de.beatbrot.screenshotassistant.databinding.ActivityMainBinding
 import de.beatbrot.screenshotassistant.sheets.drawsettings.DrawSettingsSheet
 import de.beatbrot.screenshotassistant.util.OpenAnimationListener
 import de.beatbrot.screenshotassistant.util.SaveResult
+import de.beatbrot.screenshotassistant.util.assistantScreenshotFile
 import de.beatbrot.screenshotassistant.util.fadeFilter
 import de.beatbrot.screenshotassistant.util.hasSaveAccess
 import de.beatbrot.screenshotassistant.util.isAssistantScreenshot
@@ -93,6 +94,9 @@ class MainActivity : AppCompatActivity() {
         when (viewModel.editingMode.value) {
             EditingMode.PAINT -> viewModel.drawStack = v.drawingView.drawStack
             else -> v.cropView.cropRect?.let { viewModel.cropRect = it }
+        }
+        if (isFinishing) {
+            assistantScreenshotFile().delete()
         }
     }
 
