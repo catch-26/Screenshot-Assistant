@@ -224,7 +224,7 @@ class MainActivity : AppCompatActivity() {
                 v.cropView.post { v.cropView.cropRect = crop }
             }
         }
-        animateImageView(v.cropView, CROPPER_START_SCALE, 0F, OvershootInterpolator())
+        animateImageView(v.cropView, CROPPER_START_SCALE, DecelerateInterpolator())
     }
 
     // The editor shows only the cropped part; its strokes stay in full screenshot coordinates.
@@ -237,7 +237,7 @@ class MainActivity : AppCompatActivity() {
         v.drawingView.setImageBitmap(Bitmap.createBitmap(screenshot, crop.left, crop.top, crop.width(), crop.height()))
         v.drawingView.setImageOffset(crop.left, crop.top)
         v.drawingView.drawStack = viewModel.drawStack
-        animateImageView(v.drawingView, 1F, PAINTER_START_SHIFT, DecelerateInterpolator())
+        animateImageView(v.drawingView, PAINTER_START_SCALE, OvershootInterpolator())
     }
 
     private fun currentImage(): Bitmap? = when (viewModel.editingMode.value) {
@@ -293,12 +293,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // The cropper zooms out to the whole screenshot, the editor rises from below with its toolbar.
-    private fun animateImageView(imageView: View, startScale: Float, startShift: Float, interpolator: TimeInterpolator) {
+    // The editor zooms in with a bounce, the cropper settles back gently.
+    private fun animateImageView(imageView: View, startScale: Float, interpolator: TimeInterpolator) {
         imageView.apply {
             scaleX = startScale
             scaleY = startScale
-            translationY = startShift * v.root.height
             alpha = 0.5F
 
             visibility = View.VISIBLE
@@ -306,7 +305,6 @@ class MainActivity : AppCompatActivity() {
             animate()
                 .scaleX(1F)
                 .scaleY(1F)
-                .translationY(0F)
                 .alpha(1F)
                 .setInterpolator(interpolator)
                 .start()
@@ -386,7 +384,7 @@ class MainActivity : AppCompatActivity() {
         const val BACKGROUND_FADE = 0.75F
         const val MAX_IMAGE_SIDE = 4096
         const val FORMAT_DRAWER_DURATION = 200L
-        const val CROPPER_START_SCALE = 1.3F
-        const val PAINTER_START_SHIFT = 0.25F
+        const val CROPPER_START_SCALE = 0.95F
+        const val PAINTER_START_SCALE = 1.3F
     }
 }
