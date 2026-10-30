@@ -133,7 +133,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         formatRows.forEach { (row, format) ->
-            row.setOnClickListener { viewModel.format.value = format }
+            row.setOnClickListener {
+                viewModel.format.value = format
+                viewModel.formatDrawerOpen.value = false
+            }
         }
 
         // Taps on the screenshot only close the drawer; the buttons below it stay usable.
