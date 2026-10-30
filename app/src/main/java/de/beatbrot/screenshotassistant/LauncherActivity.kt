@@ -44,8 +44,10 @@ class LauncherActivity : AppCompatActivity() {
         v = ActivityLauncherBinding.inflate(layoutInflater)
         setContentView(v.root)
 
-        v.assistantSettingsButton.setOnClickListener {
-            openSettings(Intent(Settings.ACTION_VOICE_INPUT_SETTINGS), Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
+        listOf(v.assistantSettingsButton, v.assistantSettingsOutlinedButton).forEach { button ->
+            button.setOnClickListener {
+                openSettings(Intent(Settings.ACTION_VOICE_INPUT_SETTINGS), Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
+            }
         }
         v.introText.addOnLayoutChangeListener { _, _, top, _, bottom, _, _, _, _ -> matchCheckToIntro(bottom - top) }
         v.screenAccessButton.setOnClickListener {
@@ -142,6 +144,10 @@ class LauncherActivity : AppCompatActivity() {
         status?.let { v.statusText.setText(it) }
         v.screenAccessButton.visibility = if (access == ScreenContextAccess.REQUESTABLE) View.VISIBLE else View.GONE
         v.assistantCheck.visibility = if (isAssistant) View.VISIBLE else View.INVISIBLE
+        // Filled buttons mark a step that still needs action; once done, the settings button turns outlined like the others.
+        val settingsNeedAction = !isAssistant || access == ScreenContextAccess.UNREQUESTABLE
+        v.assistantSettingsButton.visibility = if (settingsNeedAction) View.VISIBLE else View.GONE
+        v.assistantSettingsOutlinedButton.visibility = if (settingsNeedAction) View.GONE else View.VISIBLE
     }
 
     // The check mark is as tall as the setup sentence, which can wrap to more lines on narrow screens.
