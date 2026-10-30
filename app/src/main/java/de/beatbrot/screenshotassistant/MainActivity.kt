@@ -1,6 +1,7 @@
 package de.beatbrot.screenshotassistant
 
 import android.content.ActivityNotFoundException
+import android.content.ContentResolver
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -31,6 +32,7 @@ import de.beatbrot.screenshotassistant.util.OpenAnimationListener
 import de.beatbrot.screenshotassistant.util.SaveResult
 import de.beatbrot.screenshotassistant.util.fadeFilter
 import de.beatbrot.screenshotassistant.util.hasSaveAccess
+import de.beatbrot.screenshotassistant.util.isAssistantScreenshot
 import de.beatbrot.screenshotassistant.util.label
 import de.beatbrot.screenshotassistant.util.saveFolder
 import de.beatbrot.screenshotassistant.util.setSaveFolder
@@ -62,16 +64,19 @@ class MainActivity : AppCompatActivity() {
         initUI()
         initViewModel()
 
-        val imgPath = when (intent.action) {
-            Intent.ACTION_EDIT -> intent.data
-            else -> intent.getParcelableExtra("screenshot", Uri::class.java)
-        }
+        val imgPath = initialImageUri()
         if (imgPath != null && loadInitialImage(imgPath)) {
             viewModel.screenshot?.let { showBackground(it) }
         } else {
             Toast.makeText(baseContext, R.string.error_no_screenshot, Toast.LENGTH_SHORT).show()
             finish()
         }
+    }
+
+    // The exported edit alias shares this activity, so each entry only accepts the URI kind it is meant for.
+    private fun initialImageUri(): Uri? = when (intent.action) {
+        Intent.ACTION_EDIT -> intent.data?.takeIf { it.scheme == ContentResolver.SCHEME_CONTENT }
+        else -> intent.getParcelableExtra("screenshot", Uri::class.java)?.takeIf { isAssistantScreenshot(it) }
     }
 
     // The editor closes once it leaves the screen, except for the folder picker and a screen turned off.
