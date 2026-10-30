@@ -18,8 +18,8 @@ private const val PRIMARY_VOLUME = "primary"
 private const val TREE_FLAGS = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 
 sealed interface SaveResult {
-    data class Saved(val folder: String, val format: Bitmap.CompressFormat) : SaveResult
-    data class AlreadySaved(val format: Bitmap.CompressFormat) : SaveResult
+    data class Saved(val folder: String) : SaveResult
+    data class AlreadySaved(val folder: String) : SaveResult
     data object StillSaving : SaveResult
     data object NoAccess : SaveResult
     data class Failed(val error: Exception) : SaveResult
@@ -69,7 +69,7 @@ private fun Context.folderName(folder: Uri): String {
     return name ?: folder.lastPathSegment.orEmpty()
 }
 
-// JPEG and WEBP are always written at maximum quality.
+// JPG and WEBP are always written at maximum quality.
 const val IMAGE_QUALITY = 100
 
 fun Context.saveImage(image: Bitmap, format: Bitmap.CompressFormat, fileName: String): SaveResult {
@@ -81,7 +81,7 @@ fun Context.saveImage(image: Bitmap, format: Bitmap.CompressFormat, fileName: St
             null -> saveToMediaStore(image, format, fileName)
             else -> saveToFolder(folder, image, format, fileName)
         }
-        SaveResult.Saved(saveFolderLabel(), format)
+        SaveResult.Saved(saveFolderLabel())
     } catch (e: Exception) {
         Log.e(TAG, "Could not save $fileName", e)
         SaveResult.Failed(e)

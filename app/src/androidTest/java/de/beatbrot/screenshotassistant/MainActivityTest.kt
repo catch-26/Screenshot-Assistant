@@ -88,7 +88,7 @@ class MainActivityTest {
             .perform(click())
 
         onView(withId(R.id.formatChip))
-            .check(matches(withText("JPEG")))
+            .check(matches(withText("JPG")))
         onView(withId(R.id.formatDrawer))
             .check(matches(not(isDisplayed())))
     }

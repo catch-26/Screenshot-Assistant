@@ -36,6 +36,7 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
         get() = _saveResult
 
     private var lastSaved: SavedImage? = null
+    private var lastSavedFolder = ""
 
     private var saving = false
 
@@ -84,7 +85,7 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
         }
         val saved = SavedImage(image, imageFormat)
         if (lastSaved?.matches(saved) == true) {
-            _saveResult.value = SaveResult.AlreadySaved(saved.format)
+            _saveResult.value = SaveResult.AlreadySaved(lastSavedFolder)
             return
         }
         saving = true
@@ -95,6 +96,7 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
             }
             if (result is SaveResult.Saved) {
                 lastSaved = saved
+                lastSavedFolder = result.folder
             }
             saving = false
             _saveResult.value = result
