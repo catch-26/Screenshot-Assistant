@@ -33,7 +33,6 @@
         <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:excludeFromRecents="true"
             android:theme="@style/AppTheme.Translucent" />
         <activity-alias
             android:name=".EditImageActivity"

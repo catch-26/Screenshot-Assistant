@@ -37,7 +37,7 @@ class InteractionSession(context: Context) : VoiceInteractionSession(context) {
         Log.d(TAG, "onHandleScreenshot screenshot=${screenshot?.let { "${it.width}x${it.height}" }}")
         if (screenshot != null) {
             val startIntent = Intent(context, MainActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 putExtra("screenshot", getScreenshotUri(screenshot))
             }
             try {
