@@ -51,7 +51,8 @@
                         android:scaleType="fitCenter"
                         android:src="@drawable/ic_check_circle_24dp"
                         android:visibility="invisible"
-                        app:tint="?attr/colorPrimary" />
+                        android:alpha="0.38"
+                        app:tint="?attr/colorOnSurface" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -81,10 +82,9 @@
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/assistantSettingsButton"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="end"
+                    android:layout_marginTop="16dp"
                     android:text="@string/launcher_open" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

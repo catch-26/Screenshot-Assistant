@@ -24,7 +24,7 @@
     <string name="marker">Highlighter</string>
     <string name="launcher_intro">Set as the default assistant app to take screenshots with the assist gesture.</string>
     <string name="launcher_status_inactive">Also turn on \"Use screenshot\" there.</string>
-    <string name="launcher_open">Open</string>
+    <string name="launcher_open">Open digital assistant settings</string>
     <string name="launcher_selected" tools:ignore="MissingTranslation">Selected as the default assistant app</string>
     <string name="launcher_status_no_screen_access">Android does not let the app see the screen yet.</string>
     <string name="launcher_status_screen_access_denied">Screen access was denied. Allow it in the digital assistant settings.</string>
