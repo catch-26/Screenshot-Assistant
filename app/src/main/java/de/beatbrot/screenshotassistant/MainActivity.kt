@@ -345,7 +345,10 @@ class MainActivity : AppCompatActivity() {
         val bitmap = try {
             decodeImage(uri)
         } catch (e: Exception) {
-            Log.e(TAG, "Could not load image $uri", e)
+            Log.e(TAG, "Could not load image", e)
+            return false
+        } catch (e: OutOfMemoryError) {
+            Log.e(TAG, "Image too large to load", e)
             return false
         }
         viewModel.screenshot = bitmap
