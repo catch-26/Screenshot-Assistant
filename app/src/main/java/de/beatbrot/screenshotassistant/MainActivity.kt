@@ -138,12 +138,6 @@ class MainActivity : AppCompatActivity() {
         // Taps on the screenshot only close the drawer; the buttons below it stay usable.
         v.formatDrawerScrim.setOnClickListener { viewModel.formatDrawerOpen.value = false }
 
-        v.formatQualitySlider.addOnChangeListener { _, value, fromUser ->
-            if (fromUser) {
-                viewModel.quality.value = value.toInt()
-            }
-        }
-
         onBackPressedDispatcher.addCallback(this, closeFormatDrawerOnBack)
     }
 
@@ -196,15 +190,6 @@ class MainActivity : AppCompatActivity() {
             v.formatChip.text = format.name
             v.formatChip.contentDescription = getString(R.string.image_format_current, format.name)
             formatRows.forEach { (row, rowFormat) -> row.isChecked = rowFormat == format }
-            // PNG is lossless, so quality only applies to JPEG and WEBP.
-            val lossy = format != Bitmap.CompressFormat.PNG
-            v.formatQualityLabel.visibility = if (lossy) View.VISIBLE else View.GONE
-            v.formatQualitySlider.visibility = if (lossy) View.VISIBLE else View.GONE
-        })
-
-        viewModel.quality.observe(this, Observer { quality ->
-            v.formatQualitySlider.value = quality.toFloat()
-            v.formatQualityLabel.text = getString(R.string.image_quality_value, quality)
         })
 
         viewModel.formatDrawerOpen.observe(this, Observer { open ->

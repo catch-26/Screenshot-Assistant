@@ -6,10 +6,6 @@ import android.graphics.Color
 import android.net.Uri
 import de.beatbrot.screenshotassistant.sheets.drawsettings.DrawSettingsViewModel
 
-var SharedPreferences.imageQuality: Int
-    get() = getInt("image_quality", 100)
-    set(value) = edit().putInt("image_quality", value).apply()
-
 var SharedPreferences.imageFormat: Bitmap.CompressFormat
     get() = Bitmap.CompressFormat.valueOf(getString("image_format", null) ?: "PNG")
     set(value) = edit().putString("image_format", value.name).apply()

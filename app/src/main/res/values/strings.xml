@@ -15,9 +15,7 @@
     <string name="undo">Undo</string>
     <string name="redo">Redo</string>
     <string name="done">Done</string>
-    <string name="image_quality">Image Quality</string>
     <string name="image_format">Image Format</string>
-    <string name="image_quality_value">Image quality: %1$d</string>
 
     <string name="pick_color">Pick a color</string>
     <string name="pen">Pen</string>
