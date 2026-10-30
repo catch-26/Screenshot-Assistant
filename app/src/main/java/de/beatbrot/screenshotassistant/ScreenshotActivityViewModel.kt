@@ -45,15 +45,10 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
     // Starts from the start-screen defaults; a change in the editor only applies to this screenshot.
     val format = liveDataOf(context.sharedPrefs.imageFormat)
 
-    val quality = liveDataOf(context.sharedPrefs.imageQuality)
-
     val formatDrawerOpen = liveDataOf(false)
 
     private val imageFormat: Bitmap.CompressFormat
         get() = format.value ?: context.sharedPrefs.imageFormat
-
-    private val imageQuality: Int
-        get() = quality.value ?: context.sharedPrefs.imageQuality
 
     val editingMode = liveDataOf(EditingMode.CROP)
 
@@ -81,13 +76,13 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
         _shareIntent.postValue(intent)
     }
 
-    // Pressing Save again only writes a new file if the image, format or quality changed since the last save.
+    // Pressing Save again only writes a new file if the image or format changed since the last save.
     fun saveImage(image: Bitmap) {
         if (saving) {
             _saveResult.value = SaveResult.StillSaving
             return
         }
-        val saved = SavedImage(image, imageFormat, imageQuality)
+        val saved = SavedImage(image, imageFormat)
         if (lastSaved?.matches(saved) == true) {
             _saveResult.value = SaveResult.AlreadySaved(saved.format)
             return
@@ -96,7 +91,7 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
         viewModelScope.launch {
             val fileName = "Screenshot-${currentDateString()}.${saved.format.fileExtension}"
             val result = withContext(Dispatchers.IO) {
-                context.saveImage(saved.image, saved.format, saved.quality, fileName)
+                context.saveImage(saved.image, saved.format, fileName)
             }
             if (result is SaveResult.Saved) {
                 lastSaved = saved
@@ -114,7 +109,7 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
         val scrFile = createScreenshotFile()
 
         FileOutputStream(scrFile).use { stream ->
-            croppedImage.compress(imageFormat, imageQuality, stream)
+            croppedImage.compress(imageFormat, IMAGE_QUALITY, stream)
         }
 
         return FileProvider.getUriForFile(context, AUTHORITY_NAME, scrFile)
@@ -146,6 +141,6 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
     }
 }
 
-private class SavedImage(val image: Bitmap, val format: Bitmap.CompressFormat, val quality: Int) {
-    fun matches(other: SavedImage) = format == other.format && quality == other.quality && image.sameAs(other.image)
+private class SavedImage(val image: Bitmap, val format: Bitmap.CompressFormat) {
+    fun matches(other: SavedImage) = format == other.format && image.sameAs(other.image)
 }

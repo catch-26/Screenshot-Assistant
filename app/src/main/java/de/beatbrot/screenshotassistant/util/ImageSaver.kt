@@ -69,14 +69,17 @@ private fun Context.folderName(folder: Uri): String {
     return name ?: folder.lastPathSegment.orEmpty()
 }
 
-fun Context.saveImage(image: Bitmap, format: Bitmap.CompressFormat, quality: Int, fileName: String): SaveResult {
+// JPEG and WEBP are always written at maximum quality.
+const val IMAGE_QUALITY = 100
+
+fun Context.saveImage(image: Bitmap, format: Bitmap.CompressFormat, fileName: String): SaveResult {
     if (!hasSaveAccess()) {
         return SaveResult.NoAccess
     }
     return try {
         when (val folder = sharedPrefs.saveFolder) {
-            null -> saveToMediaStore(image, format, quality, fileName)
-            else -> saveToFolder(folder, image, format, quality, fileName)
+            null -> saveToMediaStore(image, format, fileName)
+            else -> saveToFolder(folder, image, format, fileName)
         }
         SaveResult.Saved(saveFolderLabel(), format)
     } catch (e: Exception) {
@@ -85,7 +88,7 @@ fun Context.saveImage(image: Bitmap, format: Bitmap.CompressFormat, quality: Int
     }
 }
 
-private fun Context.saveToMediaStore(image: Bitmap, format: Bitmap.CompressFormat, quality: Int, fileName: String) {
+private fun Context.saveToMediaStore(image: Bitmap, format: Bitmap.CompressFormat, fileName: String) {
     val values = ContentValues().apply {
         put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
         put(MediaStore.MediaColumns.MIME_TYPE, format.mimeType)
@@ -95,7 +98,7 @@ private fun Context.saveToMediaStore(image: Bitmap, format: Bitmap.CompressForma
     val collection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
     val uri = contentResolver.insert(collection, values) ?: throw IOException("MediaStore did not create $fileName")
     try {
-        writeImage(uri, image, format, quality)
+        writeImage(uri, image, format)
         contentResolver.update(uri, ContentValues().apply { put(MediaStore.MediaColumns.IS_PENDING, 0) }, null, null)
     } catch (e: Exception) {
         contentResolver.delete(uri, null, null)
@@ -103,21 +106,21 @@ private fun Context.saveToMediaStore(image: Bitmap, format: Bitmap.CompressForma
     }
 }
 
-private fun Context.saveToFolder(folder: Uri, image: Bitmap, format: Bitmap.CompressFormat, quality: Int, fileName: String) {
+private fun Context.saveToFolder(folder: Uri, image: Bitmap, format: Bitmap.CompressFormat, fileName: String) {
     val uri = DocumentsContract.createDocument(contentResolver, folder.rootDocument, format.mimeType, fileName)
         ?: throw IOException("Could not create $fileName in $folder")
     try {
-        writeImage(uri, image, format, quality)
+        writeImage(uri, image, format)
     } catch (e: Exception) {
         DocumentsContract.deleteDocument(contentResolver, uri)
         throw e
     }
 }
 
-private fun Context.writeImage(uri: Uri, image: Bitmap, format: Bitmap.CompressFormat, quality: Int) {
+private fun Context.writeImage(uri: Uri, image: Bitmap, format: Bitmap.CompressFormat) {
     val stream = contentResolver.openOutputStream(uri) ?: throw IOException("Could not open $uri")
     stream.use {
-        if (!image.compress(format, quality, it)) {
+        if (!image.compress(format, IMAGE_QUALITY, it)) {
             throw IOException("Could not encode the image as ${format.name}")
         }
     }

@@ -22,7 +22,6 @@ import de.beatbrot.screenshotassistant.util.setSaveFolder
 import de.beatbrot.screenshotassistant.util.screenContextAccess
 import de.beatbrot.screenshotassistant.util.screenContextRequestIntent
 import de.beatbrot.screenshotassistant.util.imageFormat
-import de.beatbrot.screenshotassistant.util.imageQuality
 import de.beatbrot.screenshotassistant.util.sharedPrefs
 
 class LauncherActivity : AppCompatActivity() {
@@ -91,29 +90,13 @@ class LauncherActivity : AppCompatActivity() {
             R.id.formatWebp to Bitmap.CompressFormat.WEBP
         )
         v.formatGroup.check(formats.entries.first { it.value == prefs.imageFormat }.key)
-        v.qualitySlider.value = prefs.imageQuality.toFloat()
-        updateQuality(prefs.imageFormat, prefs.imageQuality)
 
         v.formatGroup.addOnButtonCheckedListener { _, id, checked ->
             val format = formats[id]
             if (checked && format != null) {
                 prefs.imageFormat = format
-                updateQuality(format, prefs.imageQuality)
             }
         }
-        v.qualitySlider.addOnChangeListener { _, value, _ ->
-            prefs.imageQuality = value.toInt()
-            updateQuality(prefs.imageFormat, value.toInt())
-        }
-    }
-
-    // PNG is lossless, so quality only applies to JPEG and WEBP.
-    private fun updateQuality(format: Bitmap.CompressFormat, quality: Int) {
-        val lossy = format != Bitmap.CompressFormat.PNG
-        v.qualitySlider.isEnabled = lossy
-        v.qualityLabel.isEnabled = lossy
-        v.qualityLabel.alpha = if (lossy) 1F else 0.5F
-        v.qualityLabel.text = getString(R.string.image_quality_value, quality)
     }
 
     override fun onResume() {
