@@ -53,13 +53,14 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
 
     val editingMode = liveDataOf(EditingMode.CROP)
 
-    val currentBitmap = MutableLiveData<Bitmap>()
-
+    // The full screenshot stays untouched; edits and crop are only combined on Save or Share.
     var screenshot: Bitmap? = null
 
-    val drawStack = MutableLiveData<DrawStack>()
+    // Strokes in full screenshot coordinates, so the crop can grow again after editing.
+    var drawStack = DrawStack(emptyList(), emptyList())
 
-    val cropRect = MutableLiveData<Rect?>()
+    // Null means the whole screenshot.
+    var cropRect: Rect? = null
 
     // The edited image waiting for the folder picker, so it survives leaving the editor for the picker.
     var pendingSave: Bitmap? = null
