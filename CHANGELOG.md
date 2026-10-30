@@ -1,3 +1,12 @@
+# v26.10.23 (2026-10-30)
+
+- Editor: JPEG is now called JPG, and JPG files are saved with the .jpg extension.
+- Editor: the Save toast only says where the image was saved.
+- Editor: every Save press shows a toast, and Save and Share work while the format drawer is open.
+- Editor: the image quality slider is gone. JPG and WEBP are always saved at maximum quality.
+- Start screen: one setup sentence replaces the intro, a check shows once the app is the default assistant, and setup buttons are filled only while a step is still needed.
+- The German translation is removed. The app is in English only.
+
 # v26.10.15 (2026-10-29)
 
 - Start screen: the top card now says in one sentence what the app is. Setup hints appear only while something is missing, and the digital assistant settings button sits inside that hint as "Open".

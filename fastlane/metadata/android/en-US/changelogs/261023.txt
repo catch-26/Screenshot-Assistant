@@ -1,0 +1,6 @@
+- Editor: JPEG is now JPG, saved as .jpg.
+- Save toast only says where the image was saved.
+- Every Save shows a toast; Save and Share work with the format drawer open.
+- Quality slider removed; JPG and WEBP save at maximum quality.
+- Start screen: one setup sentence, a check when set up, buttons filled only while needed.
+- German translation removed.
