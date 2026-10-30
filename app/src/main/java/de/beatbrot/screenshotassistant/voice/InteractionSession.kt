@@ -11,6 +11,7 @@ import android.widget.Toast
 import de.beatbrot.screenshotassistant.MainActivity
 import de.beatbrot.screenshotassistant.R
 import de.beatbrot.screenshotassistant.util.ScreenContextAccess
+import de.beatbrot.screenshotassistant.util.assistantScreenshotFile
 import de.beatbrot.screenshotassistant.util.screenContextAccess
 import java.io.File
 import java.io.FileOutputStream
@@ -72,8 +73,8 @@ class InteractionSession(context: Context) : VoiceInteractionSession(context) {
     }
 
     private fun createScreenshotFile(): File {
-        val scrDir = File(context.cacheDir, "screenshots")
-        val scrFile = File(scrDir, "scr")
+        val scrFile = context.assistantScreenshotFile()
+        val scrDir = scrFile.parentFile!!
 
         scrDir.mkdir()
         if (scrFile.exists()) {
