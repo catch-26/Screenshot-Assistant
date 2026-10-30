@@ -13,8 +13,9 @@ import androidx.annotation.ColorInt
 import androidx.appcompat.widget.AppCompatImageView
 
 /**
- * Shows an image and lets the user draw strokes on it. Strokes are stored in image
- * coordinates, so they survive layout changes and export at full resolution.
+ * Shows an image and lets the user draw strokes on it. Strokes are stored in the coordinates
+ * of the full screenshot, so they survive layout changes, export at full resolution and keep
+ * their place when the shown image is only a cropped part of the screenshot.
  */
 class DrawingView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -52,6 +53,9 @@ class DrawingView @JvmOverloads constructor(
     private var lastX = 0F
     private var lastY = 0F
 
+    private var offsetX = 0F
+    private var offsetY = 0F
+
     private val toImage = Matrix()
     private val point = FloatArray(2)
 
@@ -86,6 +90,13 @@ class DrawingView @JvmOverloads constructor(
         notifyHistoryChanged()
     }
 
+    /** Where the shown image's top left corner lies in the full screenshot. */
+    fun setImageOffset(x: Int, y: Int) {
+        offsetX = x.toFloat()
+        offsetY = y.toFloat()
+        invalidate()
+    }
+
     fun exportImage(): Bitmap {
         val image = drawable
         val result = Bitmap.createBitmap(image.intrinsicWidth, image.intrinsicHeight, Bitmap.Config.ARGB_8888)
@@ -94,6 +105,7 @@ class DrawingView @JvmOverloads constructor(
         image.setBounds(0, 0, image.intrinsicWidth, image.intrinsicHeight)
         image.draw(canvas)
         image.bounds = bounds
+        canvas.translate(-offsetX, -offsetY)
         drawStrokes(canvas)
         return result
     }
@@ -105,6 +117,7 @@ class DrawingView @JvmOverloads constructor(
         canvas.translate(paddingLeft.toFloat(), paddingTop.toFloat())
         canvas.concat(imageMatrix)
         canvas.clipRect(0, 0, image.intrinsicWidth, image.intrinsicHeight)
+        canvas.translate(-offsetX, -offsetY)
         drawStrokes(canvas)
         canvas.restoreToCount(save)
     }
@@ -181,6 +194,8 @@ class DrawingView @JvmOverloads constructor(
         point[0] = x - paddingLeft
         point[1] = y - paddingTop
         toImage.mapPoints(point)
+        point[0] += offsetX
+        point[1] += offsetY
     }
 
     private fun drawStrokes(canvas: Canvas) {

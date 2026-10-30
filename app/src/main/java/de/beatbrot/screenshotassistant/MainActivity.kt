@@ -35,7 +35,6 @@ import de.beatbrot.screenshotassistant.util.label
 import de.beatbrot.screenshotassistant.util.saveFolder
 import de.beatbrot.screenshotassistant.util.setSaveFolder
 import de.beatbrot.screenshotassistant.util.sharedPrefs
-import de.beatbrot.screenshotassistant.util.tryExport
 
 class MainActivity : AppCompatActivity() {
     private lateinit var v: ActivityMainBinding
@@ -86,8 +85,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        viewModel.cropRect.value = v.cropView.cropRect
-        viewModel.drawStack.value = v.drawingView.drawStack
+        when (viewModel.editingMode.value) {
+            EditingMode.PAINT -> viewModel.drawStack = v.drawingView.drawStack
+            else -> v.cropView.cropRect?.let { viewModel.cropRect = it }
+        }
     }
 
     private fun initUI() {
@@ -133,7 +134,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         formatRows.forEach { (row, format) ->
-            row.setOnClickListener { viewModel.format.value = format }
+            row.setOnClickListener {
+                viewModel.format.value = format
+                viewModel.formatDrawerOpen.value = false
+            }
         }
 
         // Taps on the screenshot only close the drawer; the buttons below it stay usable.
@@ -143,33 +147,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initViewModel() {
-        viewModel.currentBitmap.observe(this, Observer { newBitmap ->
-            when (viewModel.editingMode.value) {
-                EditingMode.CROP -> {
-                    v.cropView.findViewById<View>(com.canhub.cropper.R.id.ImageView_image).clearAnimation()
-                    v.cropView.setImageBitmap(newBitmap)
-                    v.cropView.cropRect = Rect(v.cropView.wholeImageRect)
-                    v.cropView.post { v.cropView.requestLayout() }
-                    animateImageView(v.cropView)
-                }
-                EditingMode.PAINT -> {
-                    v.drawingView.setImageBitmap(newBitmap)
-                    animateImageView(v.drawingView)
-                }
-                null -> Unit
-            }
-        })
-
-        viewModel.drawStack.observe(this, Observer { stack ->
-            if (stack != null) {
-                v.drawingView.drawStack = stack
-            }
-        })
-
-        viewModel.cropRect.observe(this, Observer { rect ->
-            v.cropView.cropRect = rect ?: Rect(v.cropView.wholeImageRect)
-        })
-
         viewModel.shareIntent.observe(this, Observer { intent ->
             startActivity(Intent.createChooser(intent, baseContext.getString(R.string.share_image)))
         })
@@ -211,19 +188,19 @@ class MainActivity : AppCompatActivity() {
                 EditingMode.CROP -> {
                     hideBottomSheet()
                     showActionButtons(true)
-                    v.drawingView.visibility = View.GONE
-                    v.cropView.visibility = View.VISIBLE
                     if (v.drawingView.drawable != null) {
-                        viewModel.currentBitmap.value = v.drawingView.exportImage()
+                        viewModel.drawStack = v.drawingView.drawStack
+                        v.drawingView.setImageDrawable(null)
                     }
+                    v.drawingView.visibility = View.GONE
+                    showCropper()
                 }
                 EditingMode.PAINT -> {
-                    v.cropView.visibility = View.GONE
-                    v.drawingView.visibility = View.VISIBLE
-                    v.cropView.tryExport()?.let {
-                        viewModel.currentBitmap.value = it
+                    if (v.cropView.visibility == View.VISIBLE) {
+                        v.cropView.cropRect?.let { viewModel.cropRect = it }
                     }
-                    viewModel.cropRect.value = null
+                    v.cropView.visibility = View.GONE
+                    showPainter()
                     viewModel.formatDrawerOpen.value = false
                     showActionButtons(false)
                     showBottomSheet()
@@ -231,6 +208,29 @@ class MainActivity : AppCompatActivity() {
                 else -> throw UnsupportedOperationException()
             }
         })
+    }
+
+    // The cropper shows the full screenshot with the edits painted on, so the crop can grow back out.
+    private fun showCropper() {
+        val screenshot = viewModel.screenshot ?: return
+        v.cropView.findViewById<View>(com.canhub.cropper.R.id.ImageView_image).clearAnimation()
+        v.cropView.setImageBitmap(viewModel.drawStack.paintedOnto(screenshot))
+        v.cropView.cropRect = viewModel.cropRect ?: Rect(v.cropView.wholeImageRect)
+        v.cropView.post { v.cropView.requestLayout() }
+        animateImageView(v.cropView)
+    }
+
+    // The editor shows only the cropped part; its strokes stay in full screenshot coordinates.
+    private fun showPainter() {
+        val screenshot = viewModel.screenshot ?: return
+        val crop = Rect(viewModel.cropRect ?: Rect(0, 0, screenshot.width, screenshot.height))
+        if (!crop.intersect(0, 0, screenshot.width, screenshot.height) || crop.isEmpty) {
+            crop.set(0, 0, screenshot.width, screenshot.height)
+        }
+        v.drawingView.setImageBitmap(Bitmap.createBitmap(screenshot, crop.left, crop.top, crop.width(), crop.height()))
+        v.drawingView.setImageOffset(crop.left, crop.top)
+        v.drawingView.drawStack = viewModel.drawStack
+        animateImageView(v.drawingView)
     }
 
     private fun currentImage(): Bitmap? = when (viewModel.editingMode.value) {
@@ -339,7 +339,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadInitialImage(uri: Uri): Boolean {
-        if (viewModel.currentBitmap.value != null) {
+        if (viewModel.screenshot != null) {
             return true
         }
         val bitmap = try {
@@ -349,7 +349,6 @@ class MainActivity : AppCompatActivity() {
             return false
         }
         viewModel.screenshot = bitmap
-        viewModel.currentBitmap.value = bitmap
         return true
     }
 
