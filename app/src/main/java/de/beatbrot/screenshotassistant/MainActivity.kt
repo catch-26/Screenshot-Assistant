@@ -80,11 +80,16 @@ class MainActivity : AppCompatActivity() {
         else -> intent.getParcelableExtra("screenshot", Uri::class.java)?.takeIf { isAssistantScreenshot(it) }
     }
 
-    // The editor closes once it leaves the screen, except for the folder picker and a screen turned off.
+    override fun onStart() {
+        super.onStart()
+        viewModel.sharing = false
+    }
+
+    // The editor closes once it leaves the screen, except for the folder picker, the share sheet and a screen turned off.
     override fun onStop() {
         super.onStop()
         val screenOn = getSystemService(PowerManager::class.java).isInteractive
-        if (viewModel.pendingSave == null && screenOn && !isChangingConfigurations) {
+        if (viewModel.pendingSave == null && !viewModel.sharing && screenOn && !isChangingConfigurations) {
             finish()
         }
     }
@@ -157,6 +162,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun initViewModel() {
         viewModel.shareIntent.observe(this, Observer { intent ->
+            viewModel.sharing = true
             startActivity(Intent.createChooser(intent, baseContext.getString(R.string.share_image)))
         })
 
