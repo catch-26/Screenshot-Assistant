@@ -20,7 +20,3 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 -keep class androidx.appcompat.widget.** { *; }
--keepclassmembers class com.canhub.cropper.CropImageView {
-    private float mZoom;
-    private void applyImageMatrix(float, float, boolean, boolean);
-}
