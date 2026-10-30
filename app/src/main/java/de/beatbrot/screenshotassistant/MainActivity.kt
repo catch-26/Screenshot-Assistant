@@ -27,6 +27,7 @@ import androidx.annotation.AnimRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import de.beatbrot.screenshotassistant.crop.CropOutsideFadeView
+import de.beatbrot.screenshotassistant.crop.zoomToCropWindow
 import de.beatbrot.screenshotassistant.databinding.ActivityMainBinding
 import de.beatbrot.screenshotassistant.sheets.drawsettings.DrawSettingsSheet
 import de.beatbrot.screenshotassistant.util.OpenAnimationListener
@@ -106,9 +107,7 @@ class MainActivity : AppCompatActivity() {
         v.cropView.setOnSetImageUriCompleteListener { view, _, _ ->
             view.cropRect = Rect(view.wholeImageRect)
         }
-        v.cropZoom.pivotX = 0F
-        v.cropZoom.pivotY = 0F
-        v.cropView.setOnCropWindowChangedListener { zoomToCrop(animate = true) }
+        v.cropView.setOnCropWindowChangedListener { v.cropView.zoomToCropWindow(CROP_ZOOM_FILL) }
 
         v.drawButton.setOnClickListener { viewModel.editingMode.value = EditingMode.PAINT }
 
@@ -218,38 +217,11 @@ class MainActivity : AppCompatActivity() {
         val screenshot = viewModel.screenshot ?: return
         v.cropView.setImageBitmap(viewModel.drawStack.paintedOnto(screenshot))
         v.cropView.cropRect = viewModel.cropRect ?: Rect(v.cropView.wholeImageRect)
-        v.cropZoom.animate().cancel()
-        v.cropZoom.scaleX = 1F
-        v.cropZoom.scaleY = 1F
-        v.cropZoom.translationX = 0F
-        v.cropZoom.translationY = 0F
         v.cropView.post {
             v.cropView.requestLayout()
-            v.cropView.post { zoomToCrop(animate = false) }
+            v.cropView.post { v.cropView.zoomToCropWindow(CROP_ZOOM_FILL) }
         }
         animateImageView(v.cropView, CROPPER_START_SCALE, DecelerateInterpolator())
-    }
-
-    // The cropper's own auto-zoom only reacts to some size changes, so this fits the crop window to the view every time.
-    private fun zoomToCrop(animate: Boolean) {
-        val window = v.cropView.cropWindowRect ?: return
-        val width = v.cropView.width.toFloat()
-        val height = v.cropView.height.toFloat()
-        if (window.isEmpty || width == 0F || height == 0F) {
-            return
-        }
-        val zoom = (minOf(width / window.width(), height / window.height()) * CROP_ZOOM_FILL)
-            .coerceIn(1F, v.cropView.maxZoom.toFloat())
-        val x = (width / 2 - zoom * window.centerX()).coerceIn(width - zoom * width, 0F)
-        val y = (height / 2 - zoom * window.centerY()).coerceIn(height - zoom * height, 0F)
-        if (animate) {
-            v.cropZoom.animate().scaleX(zoom).scaleY(zoom).translationX(x).translationY(y).setDuration(CROP_ZOOM_DURATION).start()
-        } else {
-            v.cropZoom.scaleX = zoom
-            v.cropZoom.scaleY = zoom
-            v.cropZoom.translationX = x
-            v.cropZoom.translationY = y
-        }
     }
 
     // The editor shows only the cropped part; its strokes stay in full screenshot coordinates.
@@ -412,6 +384,5 @@ class MainActivity : AppCompatActivity() {
         const val CROPPER_START_SCALE = 0.95F
         const val PAINTER_START_SCALE = 1.3F
         const val CROP_ZOOM_FILL = 0.9F
-        const val CROP_ZOOM_DURATION = 250L
     }
 }

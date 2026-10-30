@@ -21,19 +21,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <FrameLayout
-            android:id="@+id/cropZoom"
+        <com.canhub.cropper.CropImageView
+            android:id="@+id/cropView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <com.canhub.cropper.CropImageView
-                android:id="@+id/cropView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:cropAutoZoomEnabled="false"
-                app:cropBackgroundColor="@android:color/transparent" />
-
-        </FrameLayout>
+            android:layout_height="match_parent"
+            app:cropAutoZoomEnabled="false"
+            app:cropBackgroundColor="@android:color/transparent" />
 
         <de.beatbrot.screenshotassistant.draw.DrawingView
             android:id="@+id/drawingView"
