@@ -9,7 +9,6 @@ import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
-import android.os.PowerManager
 import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.util.Log
@@ -80,28 +79,11 @@ class MainActivity : AppCompatActivity() {
         else -> intent.getParcelableExtra("screenshot", Uri::class.java)?.takeIf { isAssistantScreenshot(it) }
     }
 
-    override fun onStart() {
-        super.onStart()
-        viewModel.sharing = false
-    }
-
-    // The editor closes once it leaves the screen, except for the folder picker, the share sheet and a screen turned off.
-    override fun onStop() {
-        super.onStop()
-        val screenOn = getSystemService(PowerManager::class.java).isInteractive
-        if (viewModel.pendingSave == null && !viewModel.sharing && screenOn && !isChangingConfigurations) {
-            finish()
-        }
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         when (viewModel.editingMode.value) {
             EditingMode.PAINT -> viewModel.drawStack = v.drawingView.drawStack
             else -> v.cropView.cropRect?.let { viewModel.cropRect = it }
-        }
-        if (isFinishing) {
-            assistantScreenshotFile().delete()
         }
     }
 
@@ -162,7 +144,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun initViewModel() {
         viewModel.shareIntent.observe(this, Observer { intent ->
-            viewModel.sharing = true
             startActivity(Intent.createChooser(intent, baseContext.getString(R.string.share_image)))
         })
 
@@ -366,6 +347,7 @@ class MainActivity : AppCompatActivity() {
             Log.e(TAG, "Image too large to load", e)
             return false
         }
+        assistantScreenshotFile().delete()
         viewModel.screenshot = bitmap
         return true
     }

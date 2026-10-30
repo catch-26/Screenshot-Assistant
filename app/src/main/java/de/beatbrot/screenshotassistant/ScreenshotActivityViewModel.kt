@@ -65,9 +65,6 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
     // The edited image waiting for the folder picker, so it survives leaving the editor for the picker.
     var pendingSave: Bitmap? = null
 
-    // Set while the share sheet is open, so coming back from sharing can still save.
-    var sharing = false
-
     fun shareImage(croppedImage: Bitmap) {
         val croppedUri = getScreenshotUri(croppedImage)
 
