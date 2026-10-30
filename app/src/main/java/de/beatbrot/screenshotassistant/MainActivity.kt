@@ -66,7 +66,9 @@ class MainActivity : AppCompatActivity() {
 
         val imgPath = initialImageUri()
         if (imgPath != null && loadInitialImage(imgPath)) {
-            viewModel.screenshot?.let { showBackground(it) }
+            if (intent.action != Intent.ACTION_EDIT) {
+                viewModel.screenshot?.let { showBackground(it) }
+            }
         } else {
             Toast.makeText(baseContext, R.string.error_no_screenshot, Toast.LENGTH_SHORT).show()
             finish()
@@ -207,12 +209,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     // The cropper shows the full screenshot with the edits painted on, so the crop can grow back out.
+    // The crop is set again once laid out, because only then does the cropper zoom in on it.
     private fun showCropper() {
         val screenshot = viewModel.screenshot ?: return
         v.cropView.findViewById<View>(com.canhub.cropper.R.id.ImageView_image).clearAnimation()
         v.cropView.setImageBitmap(viewModel.drawStack.paintedOnto(screenshot))
-        v.cropView.cropRect = viewModel.cropRect ?: Rect(v.cropView.wholeImageRect)
-        v.cropView.post { v.cropView.requestLayout() }
+        val crop = viewModel.cropRect ?: Rect(v.cropView.wholeImageRect)
+        v.cropView.cropRect = crop
+        v.cropView.post {
+            v.cropView.requestLayout()
+            v.cropView.post { v.cropView.cropRect = crop }
+        }
         animateImageView(v.cropView)
     }
 
