@@ -1,5 +1,6 @@
 package de.beatbrot.screenshotassistant
 
+import android.animation.TimeInterpolator
 import android.content.ActivityNotFoundException
 import android.content.ContentResolver
 import android.content.Intent
@@ -15,6 +16,7 @@ import android.util.Log
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.CheckedTextView
 import android.widget.Toast
@@ -222,7 +224,7 @@ class MainActivity : AppCompatActivity() {
                 v.cropView.post { v.cropView.cropRect = crop }
             }
         }
-        animateImageView(v.cropView)
+        animateImageView(v.cropView, CROPPER_START_SCALE, OvershootInterpolator())
     }
 
     // The editor shows only the cropped part; its strokes stay in full screenshot coordinates.
@@ -235,7 +237,7 @@ class MainActivity : AppCompatActivity() {
         v.drawingView.setImageBitmap(Bitmap.createBitmap(screenshot, crop.left, crop.top, crop.width(), crop.height()))
         v.drawingView.setImageOffset(crop.left, crop.top)
         v.drawingView.drawStack = viewModel.drawStack
-        animateImageView(v.drawingView)
+        animateImageView(v.drawingView, PAINTER_START_SCALE, DecelerateInterpolator())
     }
 
     private fun currentImage(): Bitmap? = when (viewModel.editingMode.value) {
@@ -291,11 +293,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun animateImageView(imageView: View) {
-        val startValue = 1.3F
+    // The cropper zooms out to the whole screenshot, the editor zooms in on the crop.
+    private fun animateImageView(imageView: View, startScale: Float, interpolator: TimeInterpolator) {
         imageView.apply {
-            scaleX = startValue
-            scaleY = startValue
+            scaleX = startScale
+            scaleY = startScale
             alpha = 0.5F
 
             visibility = View.VISIBLE
@@ -304,7 +306,7 @@ class MainActivity : AppCompatActivity() {
                 .scaleX(1F)
                 .scaleY(1F)
                 .alpha(1F)
-                .setInterpolator(OvershootInterpolator())
+                .setInterpolator(interpolator)
                 .start()
         }
     }
@@ -382,5 +384,7 @@ class MainActivity : AppCompatActivity() {
         const val BACKGROUND_FADE = 0.75F
         const val MAX_IMAGE_SIDE = 4096
         const val FORMAT_DRAWER_DURATION = 200L
+        const val CROPPER_START_SCALE = 1.3F
+        const val PAINTER_START_SCALE = 0.85F
     }
 }
