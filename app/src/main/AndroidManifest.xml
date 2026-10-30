@@ -32,6 +32,7 @@
         </activity>
         <activity
             android:name=".MainActivity"
+            android:autoRemoveFromRecents="true"
             android:exported="false"
             android:theme="@style/AppTheme.Translucent" />
         <activity-alias
