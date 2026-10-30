@@ -97,7 +97,7 @@
         <CheckedTextView
             android:id="@+id/formatRowJpeg"
             style="@style/Widget.App.FormatRow"
-            android:text="JPEG"
+            android:text="JPG"
             tools:ignore="HardcodedText" />
 
         <CheckedTextView

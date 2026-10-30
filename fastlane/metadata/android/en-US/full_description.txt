@@ -10,7 +10,7 @@ Features:
 
 - Screenshot through the Android Assist API, no screen recording permission
 - Crop, draw with a pen or highlighter, undo and redo
-- Share straight to any app, with a choice of PNG, JPEG or WEBP
+- Share straight to any app, with a choice of PNG, JPG or WEBP
 - Nothing is saved to storage, so old screenshots don't pile up
 - Optional reminder after a restart or app update if Android reset the digital assistant app (needs the notification permission)
 - No internet access, no ads, no tracking

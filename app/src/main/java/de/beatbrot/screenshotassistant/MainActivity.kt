@@ -31,6 +31,7 @@ import de.beatbrot.screenshotassistant.util.OpenAnimationListener
 import de.beatbrot.screenshotassistant.util.SaveResult
 import de.beatbrot.screenshotassistant.util.fadeFilter
 import de.beatbrot.screenshotassistant.util.hasSaveAccess
+import de.beatbrot.screenshotassistant.util.label
 import de.beatbrot.screenshotassistant.util.saveFolder
 import de.beatbrot.screenshotassistant.util.setSaveFolder
 import de.beatbrot.screenshotassistant.util.sharedPrefs
@@ -175,8 +176,8 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.saveResult.observe(this, Observer { result ->
             val message = when (result) {
-                is SaveResult.Saved -> getString(R.string.saved_to, result.format.name, result.folder)
-                is SaveResult.AlreadySaved -> getString(R.string.already_saved, result.format.name)
+                is SaveResult.Saved -> getString(R.string.saved_to, result.folder)
+                is SaveResult.AlreadySaved -> getString(R.string.already_saved, result.folder)
                 SaveResult.StillSaving -> getString(R.string.still_saving)
                 SaveResult.NoAccess -> getString(R.string.not_saved_no_access)
                 is SaveResult.Failed -> getString(R.string.not_saved, result.error.localizedMessage ?: result.error.javaClass.simpleName)
@@ -187,8 +188,8 @@ class MainActivity : AppCompatActivity() {
         })
 
         viewModel.format.observe(this, Observer { format ->
-            v.formatChip.text = format.name
-            v.formatChip.contentDescription = getString(R.string.image_format_current, format.name)
+            v.formatChip.text = format.label
+            v.formatChip.contentDescription = getString(R.string.image_format_current, format.label)
             formatRows.forEach { (row, rowFormat) -> row.isChecked = rowFormat == format }
         })
 
