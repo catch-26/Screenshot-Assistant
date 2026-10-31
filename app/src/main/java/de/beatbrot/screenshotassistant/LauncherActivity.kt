@@ -85,8 +85,8 @@ class LauncherActivity : AppCompatActivity() {
     private fun initImageSettings() {
         val prefs = sharedPrefs
         val formats = mapOf(
-            R.id.formatPng to Bitmap.CompressFormat.PNG,
             R.id.formatJpeg to Bitmap.CompressFormat.JPEG,
+            R.id.formatPng to Bitmap.CompressFormat.PNG,
             R.id.formatWebp to Bitmap.CompressFormat.WEBP
         )
         v.formatGroup.check(formats.entries.first { it.value == prefs.imageFormat }.key)
