@@ -124,21 +124,21 @@
                     app:singleSelection="true">
 
                     <com.google.android.material.button.MaterialButton
-                        android:id="@+id/formatPng"
-                        style="@style/Widget.App.ToggleButton"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="PNG"
-                        tools:ignore="HardcodedText" />
-
-                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/formatJpeg"
                         style="@style/Widget.App.ToggleButton"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="JPG"
+                        tools:ignore="HardcodedText" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/formatPng"
+                        style="@style/Widget.App.ToggleButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="PNG"
                         tools:ignore="HardcodedText" />
 
                     <com.google.android.material.button.MaterialButton

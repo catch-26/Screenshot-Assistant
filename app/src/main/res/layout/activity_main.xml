@@ -89,15 +89,15 @@
         tools:visibility="visible">
 
         <CheckedTextView
-            android:id="@+id/formatRowPng"
-            style="@style/Widget.App.FormatRow"
-            android:text="PNG"
-            tools:ignore="HardcodedText" />
-
-        <CheckedTextView
             android:id="@+id/formatRowJpeg"
             style="@style/Widget.App.FormatRow"
             android:text="JPG"
+            tools:ignore="HardcodedText" />
+
+        <CheckedTextView
+            android:id="@+id/formatRowPng"
+            style="@style/Widget.App.FormatRow"
+            android:text="PNG"
             tools:ignore="HardcodedText" />
 
         <CheckedTextView

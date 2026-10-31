@@ -124,8 +124,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun initFormatDrawer() {
         formatRows = mapOf(
-            v.formatRowPng to Bitmap.CompressFormat.PNG,
             v.formatRowJpeg to Bitmap.CompressFormat.JPEG,
+            v.formatRowPng to Bitmap.CompressFormat.PNG,
             v.formatRowWebp to Bitmap.CompressFormat.WEBP
         )
 
