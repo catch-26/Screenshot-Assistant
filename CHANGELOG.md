@@ -1,3 +1,14 @@
+# v26.10.40 (2026-10-31)
+
+- Editor: the crop stays adjustable after drawing. The crop window can grow back to the full screenshot, and strokes keep their undo and redo history.
+- Editor: after drawing, the crop view zooms in on the crop again.
+- Editor: it now behaves like a normal app in the app switcher, stays open while sharing so Save still works afterwards, and a new assistant gesture always starts with the new screenshot.
+- Editor: accepting a drawing and opening the app settle back gently instead of bouncing.
+- Editor: picking a format closes the format drawer, and formats are listed alphabetically (JPG, PNG, WEBP).
+- Crop view: the area outside the crop window is darkened without losing its colors.
+- Edit: the editor is only offered for image formats it can open (PNG, JPEG, WebP, GIF, BMP, HEIF, AVIF), and images too large for memory show a message instead of crashing.
+- Security: the editor only accepts the image it was meant to open, and the assistant screenshot is deleted from the app cache once it has been read.
+
 # v26.10.23 (2026-10-30)
 
 - Editor: JPEG is now called JPG, and JPG files are saved with the .jpg extension.
