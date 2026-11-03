@@ -1,6 +1,8 @@
 package de.beatbrot.screenshotassistant
 
+import android.animation.TimeInterpolator
 import android.content.ActivityNotFoundException
+import android.content.ContentResolver
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -8,13 +10,13 @@ import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
-import android.os.PowerManager
 import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.util.Log
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
+import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.CheckedTextView
 import android.widget.Toast
@@ -32,12 +34,14 @@ import de.beatbrot.screenshotassistant.databinding.ActivityMainBinding
 import de.beatbrot.screenshotassistant.sheets.drawsettings.DrawSettingsSheet
 import de.beatbrot.screenshotassistant.util.OpenAnimationListener
 import de.beatbrot.screenshotassistant.util.SaveResult
+import de.beatbrot.screenshotassistant.util.assistantScreenshotFile
 import de.beatbrot.screenshotassistant.util.fadeFilter
 import de.beatbrot.screenshotassistant.util.hasSaveAccess
+import de.beatbrot.screenshotassistant.util.isAssistantScreenshot
+import de.beatbrot.screenshotassistant.util.label
 import de.beatbrot.screenshotassistant.util.saveFolder
 import de.beatbrot.screenshotassistant.util.setSaveFolder
 import de.beatbrot.screenshotassistant.util.sharedPrefs
-import de.beatbrot.screenshotassistant.util.tryExport
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -69,17 +73,16 @@ class MainActivity : AppCompatActivity() {
         initUI()
         initViewModel()
 
-        val imgPath = when (intent.action) {
-            Intent.ACTION_EDIT -> intent.data
-            else -> intent.getParcelableExtra("screenshot", Uri::class.java)
-        }
+        val imgPath = initialImageUri()
         if (imgPath == null) {
             closeWithoutScreenshot()
             return
         }
         lifecycleScope.launch {
             if (loadInitialImage(imgPath)) {
-                viewModel.screenshot?.let { showBackground(it) }
+                if (intent.action != Intent.ACTION_EDIT) {
+                    viewModel.screenshot?.let { showBackground(it) }
+                }
             } else {
                 closeWithoutScreenshot()
             }
@@ -91,19 +94,18 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
-    // The editor closes once it leaves the screen, except for the folder picker and a screen turned off.
-    override fun onStop() {
-        super.onStop()
-        val screenOn = getSystemService(PowerManager::class.java).isInteractive
-        if (viewModel.pendingSave == null && screenOn && !isChangingConfigurations) {
-            finish()
-        }
+    // The exported edit alias shares this activity, so each entry only accepts the URI kind it is meant for.
+    private fun initialImageUri(): Uri? = when (intent.action) {
+        Intent.ACTION_EDIT -> intent.data?.takeIf { it.scheme == ContentResolver.SCHEME_CONTENT }
+        else -> intent.getParcelableExtra("screenshot", Uri::class.java)?.takeIf { isAssistantScreenshot(it) }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        viewModel.cropRect.value = v.cropView.cropRect
-        viewModel.drawStack.value = v.drawingView.drawStack
+        when (viewModel.editingMode.value) {
+            EditingMode.PAINT -> viewModel.drawStack = v.drawingView.drawStack
+            else -> v.cropView.cropRect?.let { viewModel.cropRect = it }
+        }
     }
 
     private fun initUI() {
@@ -139,8 +141,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun initFormatDrawer() {
         formatRows = mapOf(
-            v.formatRowPng to Bitmap.CompressFormat.PNG,
             v.formatRowJpeg to Bitmap.CompressFormat.JPEG,
+            v.formatRowPng to Bitmap.CompressFormat.PNG,
             v.formatRowWebp to Bitmap.CompressFormat.WEBP
         )
 
@@ -149,57 +151,27 @@ class MainActivity : AppCompatActivity() {
         }
 
         formatRows.forEach { (row, format) ->
-            row.setOnClickListener { viewModel.format.value = format }
+            row.setOnClickListener {
+                viewModel.format.value = format
+                viewModel.formatDrawerOpen.value = false
+            }
         }
 
         // Taps on the screenshot only close the drawer; the buttons below it stay usable.
         v.formatDrawerScrim.setOnClickListener { viewModel.formatDrawerOpen.value = false }
 
-        v.formatQualitySlider.addOnChangeListener { _, value, fromUser ->
-            if (fromUser) {
-                viewModel.quality.value = value.toInt()
-            }
-        }
-
         onBackPressedDispatcher.addCallback(this, closeFormatDrawerOnBack)
     }
 
     private fun initViewModel() {
-        viewModel.currentBitmap.observe(this, Observer { newBitmap ->
-            when (viewModel.editingMode.value) {
-                EditingMode.CROP -> {
-                    v.cropView.findViewById<View>(com.canhub.cropper.R.id.ImageView_image).clearAnimation()
-                    v.cropView.setImageBitmap(newBitmap)
-                    v.cropView.cropRect = Rect(v.cropView.wholeImageRect)
-                    v.cropView.post { v.cropView.requestLayout() }
-                    animateImageView(v.cropView)
-                }
-                EditingMode.PAINT -> {
-                    v.drawingView.setImageBitmap(newBitmap)
-                    animateImageView(v.drawingView)
-                }
-                null -> Unit
-            }
-        })
-
-        viewModel.drawStack.observe(this, Observer { stack ->
-            if (stack != null) {
-                v.drawingView.drawStack = stack
-            }
-        })
-
-        viewModel.cropRect.observe(this, Observer { rect ->
-            v.cropView.cropRect = rect ?: Rect(v.cropView.wholeImageRect)
-        })
-
         viewModel.shareIntent.observe(this, Observer { intent ->
             startActivity(Intent.createChooser(intent, baseContext.getString(R.string.share_image)))
         })
 
         viewModel.saveResult.observe(this, Observer { result ->
             val message = when (result) {
-                is SaveResult.Saved -> getString(R.string.saved_to, result.format.name, result.folder)
-                is SaveResult.AlreadySaved -> getString(R.string.already_saved, result.format.name)
+                is SaveResult.Saved -> getString(R.string.saved_to, result.folder)
+                is SaveResult.AlreadySaved -> getString(R.string.already_saved, result.folder)
                 SaveResult.StillSaving -> getString(R.string.still_saving)
                 SaveResult.NoAccess -> getString(R.string.not_saved_no_access)
                 is SaveResult.Failed -> getString(R.string.not_saved, result.error.localizedMessage ?: result.error.javaClass.simpleName)
@@ -210,18 +182,9 @@ class MainActivity : AppCompatActivity() {
         })
 
         viewModel.format.observe(this, Observer { format ->
-            v.formatChip.text = format.name
-            v.formatChip.contentDescription = getString(R.string.image_format_current, format.name)
+            v.formatChip.text = format.label
+            v.formatChip.contentDescription = getString(R.string.image_format_current, format.label)
             formatRows.forEach { (row, rowFormat) -> row.isChecked = rowFormat == format }
-            // PNG is lossless, so quality only applies to JPEG and WEBP.
-            val lossy = format != Bitmap.CompressFormat.PNG
-            v.formatQualityLabel.visibility = if (lossy) View.VISIBLE else View.GONE
-            v.formatQualitySlider.visibility = if (lossy) View.VISIBLE else View.GONE
-        })
-
-        viewModel.quality.observe(this, Observer { quality ->
-            v.formatQualitySlider.value = quality.toFloat()
-            v.formatQualityLabel.text = getString(R.string.image_quality_value, quality)
         })
 
         viewModel.formatDrawerOpen.observe(this, Observer { open ->
@@ -242,19 +205,19 @@ class MainActivity : AppCompatActivity() {
                 EditingMode.CROP -> {
                     hideBottomSheet()
                     showActionButtons(true)
-                    v.drawingView.visibility = View.GONE
-                    v.cropView.visibility = View.VISIBLE
                     if (v.drawingView.drawable != null) {
-                        viewModel.currentBitmap.value = v.drawingView.exportImage()
+                        viewModel.drawStack = v.drawingView.drawStack
+                        v.drawingView.setImageDrawable(null)
                     }
+                    v.drawingView.visibility = View.GONE
+                    showCropper()
                 }
                 EditingMode.PAINT -> {
-                    v.cropView.visibility = View.GONE
-                    v.drawingView.visibility = View.VISIBLE
-                    v.cropView.tryExport()?.let {
-                        viewModel.currentBitmap.value = it
+                    if (v.cropView.visibility == View.VISIBLE) {
+                        v.cropView.cropRect?.let { viewModel.cropRect = it }
                     }
-                    viewModel.cropRect.value = null
+                    v.cropView.visibility = View.GONE
+                    showPainter()
                     viewModel.formatDrawerOpen.value = false
                     showActionButtons(false)
                     showBottomSheet()
@@ -262,6 +225,36 @@ class MainActivity : AppCompatActivity() {
                 else -> throw UnsupportedOperationException()
             }
         })
+    }
+
+    // The cropper shows the full screenshot with the edits painted on, so the crop can grow back out.
+    // A crop from before the edit is set again once laid out, because only then does the cropper zoom in on it.
+    private fun showCropper() {
+        val screenshot = viewModel.screenshot ?: return
+        v.cropView.findViewById<View>(com.canhub.cropper.R.id.ImageView_image).clearAnimation()
+        v.cropView.setImageBitmap(viewModel.drawStack.paintedOnto(screenshot))
+        val crop = viewModel.cropRect
+        v.cropView.cropRect = crop ?: Rect(v.cropView.wholeImageRect)
+        v.cropView.post {
+            v.cropView.requestLayout()
+            if (crop != null) {
+                v.cropView.post { v.cropView.cropRect = crop }
+            }
+        }
+        animateImageView(v.cropView, CROPPER_START_SCALE, DecelerateInterpolator())
+    }
+
+    // The editor shows only the cropped part; its strokes stay in full screenshot coordinates.
+    private fun showPainter() {
+        val screenshot = viewModel.screenshot ?: return
+        val crop = Rect(viewModel.cropRect ?: Rect(0, 0, screenshot.width, screenshot.height))
+        if (!crop.intersect(0, 0, screenshot.width, screenshot.height) || crop.isEmpty) {
+            crop.set(0, 0, screenshot.width, screenshot.height)
+        }
+        v.drawingView.setImageBitmap(Bitmap.createBitmap(screenshot, crop.left, crop.top, crop.width(), crop.height()))
+        v.drawingView.setImageOffset(crop.left, crop.top)
+        v.drawingView.drawStack = viewModel.drawStack
+        animateImageView(v.drawingView, PAINTER_START_SCALE, OvershootInterpolator())
     }
 
     @MainThread
@@ -319,11 +312,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun animateImageView(imageView: View) {
-        val startValue = 1.3F
+    // The editor zooms in with a bounce, the cropper settles back gently.
+    private fun animateImageView(imageView: View, startScale: Float, interpolator: TimeInterpolator) {
         imageView.apply {
-            scaleX = startValue
-            scaleY = startValue
+            scaleX = startScale
+            scaleY = startScale
             alpha = 0.5F
 
             visibility = View.VISIBLE
@@ -332,7 +325,7 @@ class MainActivity : AppCompatActivity() {
                 .scaleX(1F)
                 .scaleY(1F)
                 .alpha(1F)
-                .setInterpolator(OvershootInterpolator())
+                .setInterpolator(interpolator)
                 .start()
         }
     }
@@ -372,7 +365,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private suspend fun loadInitialImage(uri: Uri): Boolean {
-        if (viewModel.currentBitmap.value != null) {
+        if (viewModel.screenshot != null) {
             return true
         }
         val bitmap = try {
@@ -380,11 +373,14 @@ class MainActivity : AppCompatActivity() {
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            Log.e(TAG, "Could not load image $uri", e)
+            Log.e(TAG, "Could not load image", e)
+            return false
+        } catch (e: OutOfMemoryError) {
+            Log.e(TAG, "Image too large to load", e)
             return false
         }
+        assistantScreenshotFile().delete()
         viewModel.screenshot = bitmap
-        viewModel.currentBitmap.value = bitmap
         return true
     }
 
@@ -410,5 +406,7 @@ class MainActivity : AppCompatActivity() {
         const val BACKGROUND_FADE = 0.75F
         const val MAX_IMAGE_SIDE = 4096
         const val FORMAT_DRAWER_DURATION = 200L
+        const val CROPPER_START_SCALE = 0.95F
+        const val PAINTER_START_SCALE = 1.3F
     }
 }

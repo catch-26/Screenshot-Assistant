@@ -38,6 +38,7 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
         get() = _saveResult
 
     private var lastSaved: SavedImage? = null
+    private var lastSavedFolder = ""
 
     private var saving = false
 
@@ -47,25 +48,21 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
     // Starts from the start-screen defaults; a change in the editor only applies to this screenshot.
     val format = liveDataOf(context.sharedPrefs.imageFormat)
 
-    val quality = liveDataOf(context.sharedPrefs.imageQuality)
-
     val formatDrawerOpen = liveDataOf(false)
 
     private val imageFormat: Bitmap.CompressFormat
         get() = format.value ?: context.sharedPrefs.imageFormat
 
-    private val imageQuality: Int
-        get() = quality.value ?: context.sharedPrefs.imageQuality
-
     val editingMode = liveDataOf(EditingMode.CROP)
 
-    val currentBitmap = MutableLiveData<Bitmap>()
-
+    // The full screenshot stays untouched; edits and crop are only combined on Save or Share.
     var screenshot: Bitmap? = null
 
-    val drawStack = MutableLiveData<DrawStack>()
+    // Strokes in full screenshot coordinates, so the crop can grow again after editing.
+    var drawStack = DrawStack(emptyList(), emptyList())
 
-    val cropRect = MutableLiveData<Rect?>()
+    // Null means the whole screenshot.
+    var cropRect: Rect? = null
 
     // The edited image waiting for the folder picker, so it survives leaving the editor for the picker.
     var pendingSave: Bitmap? = null
@@ -83,27 +80,29 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
         _shareIntent.postValue(intent)
     }
 
-    // Pressing Save again only writes a new file if the image, format or quality changed since the last save.
+    // Pressing Save again only writes a new file if the image or format changed since the last save.
     @MainThread
     fun saveImage(image: Bitmap) {
         if (saving) {
             _saveResult.value = SaveResult.StillSaving
             return
         }
-        val saved = SavedImage(image, imageFormat, imageQuality)
+        val saved = SavedImage(image, imageFormat)
         val previous = lastSaved
+        val previousFolder = lastSavedFolder
         saving = true
         viewModelScope.launch {
             val fileName = "Screenshot-${currentDateString()}.${saved.format.fileExtension}"
             val result = withContext(Dispatchers.IO) {
                 if (previous?.matches(saved) == true) {
-                    SaveResult.AlreadySaved(saved.format)
+                    SaveResult.AlreadySaved(previousFolder)
                 } else {
-                    context.saveImage(saved.image, saved.format, saved.quality, fileName)
+                    context.saveImage(saved.image, saved.format, fileName)
                 }
             }
             if (result is SaveResult.Saved) {
                 lastSaved = saved
+                lastSavedFolder = result.folder
             }
             saving = false
             _saveResult.value = result
@@ -118,7 +117,7 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
         val scrFile = createScreenshotFile()
 
         FileOutputStream(scrFile).use { stream ->
-            croppedImage.compress(imageFormat, imageQuality, stream)
+            croppedImage.compress(imageFormat, IMAGE_QUALITY, stream)
         }
 
         return FileProvider.getUriForFile(context, AUTHORITY_NAME, scrFile)
@@ -150,7 +149,7 @@ class ScreenshotActivityViewModel(application: Application) : AndroidViewModel(a
     }
 }
 
-private class SavedImage(val image: Bitmap, val format: Bitmap.CompressFormat, val quality: Int) {
+private class SavedImage(val image: Bitmap, val format: Bitmap.CompressFormat) {
     @WorkerThread
-    fun matches(other: SavedImage) = format == other.format && quality == other.quality && image.sameAs(other.image)
+    fun matches(other: SavedImage) = format == other.format && image.sameAs(other.image)
 }

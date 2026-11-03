@@ -12,3 +12,10 @@ fun fadeFilter(reduction: Float): ColorMatrixColorFilter {
     }
     return ColorMatrixColorFilter(matrix)
 }
+
+/** Reduces brightness only, keeping colors saturated, 0 = unchanged, 1 = black. */
+fun darkenFilter(reduction: Float): ColorMatrixColorFilter {
+    val keep = 1F - reduction
+    val matrix = ColorMatrix().apply { setScale(keep, keep, keep, 1F) }
+    return ColorMatrixColorFilter(matrix)
+}

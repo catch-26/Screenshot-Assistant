@@ -15,16 +15,14 @@
     <string name="undo">Undo</string>
     <string name="redo">Redo</string>
     <string name="done">Done</string>
-    <string name="image_quality">Image Quality</string>
     <string name="image_format">Image Format</string>
-    <string name="image_quality_value">Image quality: %1$d</string>
 
     <string name="pick_color">Pick a color</string>
     <string name="pen">Pen</string>
     <string name="marker">Highlighter</string>
     <string name="launcher_intro">Set as the default assistant app to take screenshots with the assist gesture.</string>
     <string name="launcher_status_inactive">Also turn on \"Use screenshot\" there.</string>
-    <string name="launcher_open">Open</string>
+    <string name="launcher_open">Open digital assistant settings</string>
     <string name="launcher_selected" tools:ignore="MissingTranslation">Selected as the default assistant app</string>
     <string name="launcher_status_no_screen_access">Android does not let the app see the screen yet.</string>
     <string name="launcher_status_screen_access_denied">Screen access was denied. Allow it in the digital assistant settings.</string>
@@ -49,8 +47,8 @@
     <string name="assistant_check_open_settings">Open settings</string>
     <string name="assistant_check_open_app">Open app</string>
     <string name="save">Save</string>
-    <string name="saved_to">Saved as %1$s to %2$s</string>
-    <string name="already_saved">Already saved as %1$s</string>
+    <string name="saved_to">Saved to %1$s</string>
+    <string name="already_saved">Already saved to %1$s</string>
     <string name="still_saving">Still saving</string>
     <string name="not_saved_no_image">Not saved: no image to save</string>
     <string name="not_saved">Not saved: %1$s</string>

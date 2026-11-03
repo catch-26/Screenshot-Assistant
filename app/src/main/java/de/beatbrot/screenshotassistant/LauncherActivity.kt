@@ -22,7 +22,6 @@ import de.beatbrot.screenshotassistant.util.setSaveFolder
 import de.beatbrot.screenshotassistant.util.screenContextAccess
 import de.beatbrot.screenshotassistant.util.screenContextRequestIntent
 import de.beatbrot.screenshotassistant.util.imageFormat
-import de.beatbrot.screenshotassistant.util.imageQuality
 import de.beatbrot.screenshotassistant.util.sharedPrefs
 
 class LauncherActivity : AppCompatActivity() {
@@ -44,8 +43,10 @@ class LauncherActivity : AppCompatActivity() {
         v = ActivityLauncherBinding.inflate(layoutInflater)
         setContentView(v.root)
 
-        v.assistantSettingsButton.setOnClickListener {
-            openSettings(Intent(Settings.ACTION_VOICE_INPUT_SETTINGS), Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
+        listOf(v.assistantSettingsButton, v.assistantSettingsOutlinedButton).forEach { button ->
+            button.setOnClickListener {
+                openSettings(Intent(Settings.ACTION_VOICE_INPUT_SETTINGS), Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
+            }
         }
         v.introText.addOnLayoutChangeListener { _, _, top, _, bottom, _, _, _, _ -> matchCheckToIntro(bottom - top) }
         v.screenAccessButton.setOnClickListener {
@@ -84,34 +85,18 @@ class LauncherActivity : AppCompatActivity() {
     private fun initImageSettings() {
         val prefs = sharedPrefs
         val formats = mapOf(
-            R.id.formatPng to Bitmap.CompressFormat.PNG,
             R.id.formatJpeg to Bitmap.CompressFormat.JPEG,
+            R.id.formatPng to Bitmap.CompressFormat.PNG,
             R.id.formatWebp to Bitmap.CompressFormat.WEBP
         )
         v.formatGroup.check(formats.entries.first { it.value == prefs.imageFormat }.key)
-        v.qualitySlider.value = prefs.imageQuality.toFloat()
-        updateQuality(prefs.imageFormat, prefs.imageQuality)
 
         v.formatGroup.addOnButtonCheckedListener { _, id, checked ->
             val format = formats[id]
             if (checked && format != null) {
                 prefs.imageFormat = format
-                updateQuality(format, prefs.imageQuality)
             }
         }
-        v.qualitySlider.addOnChangeListener { _, value, _ ->
-            prefs.imageQuality = value.toInt()
-            updateQuality(prefs.imageFormat, value.toInt())
-        }
-    }
-
-    // PNG is lossless, so quality only applies to JPEG and WEBP.
-    private fun updateQuality(format: Bitmap.CompressFormat, quality: Int) {
-        val lossy = format != Bitmap.CompressFormat.PNG
-        v.qualitySlider.isEnabled = lossy
-        v.qualityLabel.isEnabled = lossy
-        v.qualityLabel.alpha = if (lossy) 1F else 0.5F
-        v.qualityLabel.text = getString(R.string.image_quality_value, quality)
     }
 
     override fun onResume() {
@@ -142,6 +127,10 @@ class LauncherActivity : AppCompatActivity() {
         status?.let { v.statusText.setText(it) }
         v.screenAccessButton.visibility = if (access == ScreenContextAccess.REQUESTABLE) View.VISIBLE else View.GONE
         v.assistantCheck.visibility = if (isAssistant) View.VISIBLE else View.INVISIBLE
+        // Filled buttons mark a step that still needs action; once done, the settings button turns outlined like the others.
+        val settingsNeedAction = !isAssistant || access == ScreenContextAccess.UNREQUESTABLE
+        v.assistantSettingsButton.visibility = if (settingsNeedAction) View.VISIBLE else View.GONE
+        v.assistantSettingsOutlinedButton.visibility = if (settingsNeedAction) View.GONE else View.VISIBLE
     }
 
     // The check mark is as tall as the setup sentence, which can wrap to more lines on narrow screens.

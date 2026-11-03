@@ -7,4 +7,7 @@ val Enum<Bitmap.CompressFormat>.mimeType
     get() = "image/${name.lowercase(Locale.ROOT)}"
 
 val Enum<Bitmap.CompressFormat>.fileExtension
-    get() = name.lowercase(Locale.ROOT)
+    get() = label.lowercase(Locale.ROOT)
+
+val Enum<Bitmap.CompressFormat>.label
+    get() = if (this == Bitmap.CompressFormat.JPEG) "JPG" else name
