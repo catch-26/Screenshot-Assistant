@@ -19,6 +19,8 @@ jobs:
           {
             grep -nE -A12 "What went wrong" build.log | head -40
             grep -nE "^e: |error:|FAILED|Could not|Lint found" build.log | head -30
+            echo "----- lint errors -----"
+            grep -h -A3 ": Error:" app/build/intermediates/lint_intermediate_text_report/*/*/lint-results-*.txt 2>/dev/null | head -60
             echo "----- tail -----"
             tail -15 build.log
           } > summary.txt
