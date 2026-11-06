@@ -12,7 +12,7 @@
     app:contentPaddingTop="12dp"
     app:shapeAppearanceOverlay="@style/ShapeAppearance.App.TopSheet"
     app:strokeWidth="0dp"
-    tools:context=".MainActivity"
+    tools:context=".editor.EditorActivity"
     tools:keep="@layout/sheet_colorsettings">
 
     <LinearLayout

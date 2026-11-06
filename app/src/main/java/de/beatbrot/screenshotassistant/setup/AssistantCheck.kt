@@ -1,4 +1,4 @@
-package de.beatbrot.screenshotassistant.boot
+package de.beatbrot.screenshotassistant.setup
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -20,6 +20,8 @@ var Context.checkAssistantOnBoot: Boolean
     get() = sharedPrefs.getBoolean(PREF_KEY, false)
     set(value) = sharedPrefs.edit().putBoolean(PREF_KEY, value).apply()
 
+fun assistantSettingsIntent() = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
+
 val Context.isDefaultAssistant: Boolean
     get() = getSystemService(RoleManager::class.java).isRoleHeld(RoleManager.ROLE_ASSISTANT)
 
@@ -36,7 +38,7 @@ fun Context.checkAssistantAndNotify() {
     )
     val settings = PendingIntent.getActivity(
         this, 0,
-        Intent(Settings.ACTION_VOICE_INPUT_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        assistantSettingsIntent().addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
     )
     val app = PendingIntent.getActivity(

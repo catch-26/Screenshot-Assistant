@@ -1,4 +1,4 @@
-package de.beatbrot.screenshotassistant.sheets.drawsettings
+package de.beatbrot.screenshotassistant.editor.draw
 
 import android.app.Dialog
 import android.content.Context

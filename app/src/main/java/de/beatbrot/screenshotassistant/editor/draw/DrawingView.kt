@@ -1,16 +1,16 @@
-package de.beatbrot.screenshotassistant.draw
+package de.beatbrot.screenshotassistant.editor.draw
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.MotionEvent
-import androidx.annotation.ColorInt
 import androidx.appcompat.widget.AppCompatImageView
+import androidx.core.graphics.ColorUtils
 
 /**
  * Shows an image and lets the user draw strokes on it. Strokes are stored in the coordinates
@@ -21,23 +21,10 @@ class DrawingView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : AppCompatImageView(context, attrs, defStyleAttr) {
 
-    @ColorInt
-    var strokeColor: Int = Color.BLACK
+    var pen = Pen.DEFAULT
 
-    /** Width in view pixels at the current zoom. */
-    var strokeWidth: Float = 6F
-
-    var strokeCap: Paint.Cap = Paint.Cap.ROUND
-
-    var drawStack: DrawStack
+    val drawStack: DrawStack
         get() = DrawStack(undo.toList(), redo.toList())
-        set(value) {
-            undo = ArrayDeque(value.undo)
-            redo = ArrayDeque(value.redo)
-            current = null
-            invalidate()
-            notifyHistoryChanged()
-        }
 
     var onHistoryChanged: ((canUndo: Boolean, canRedo: Boolean) -> Unit)? = null
         set(value) {
@@ -81,24 +68,21 @@ class DrawingView @JvmOverloads constructor(
         notifyHistoryChanged()
     }
 
-    override fun setImageBitmap(bm: Bitmap?) {
-        super.setImageBitmap(bm)
-        undo.clear()
-        redo.clear()
+    fun show(screenshot: Bitmap, crop: Rect?, stack: DrawStack) {
+        val whole = Rect(0, 0, screenshot.width, screenshot.height)
+        val part = Rect(crop ?: whole).takeIf { it.intersect(whole) && !it.isEmpty } ?: whole
+        setImageBitmap(Bitmap.createBitmap(screenshot, part.left, part.top, part.width(), part.height()))
+        offsetX = part.left.toFloat()
+        offsetY = part.top.toFloat()
+        undo = ArrayDeque(stack.undo)
+        redo = ArrayDeque(stack.redo)
         current = null
         invalidate()
         notifyHistoryChanged()
     }
 
-    /** Where the shown image's top left corner lies in the full screenshot. */
-    fun setImageOffset(x: Int, y: Int) {
-        offsetX = x.toFloat()
-        offsetY = y.toFloat()
-        invalidate()
-    }
-
-    fun exportImage(): Bitmap {
-        val image = drawable
+    fun exportImage(): Bitmap? {
+        val image = drawable ?: return null
         val result = Bitmap.createBitmap(image.intrinsicWidth, image.intrinsicHeight, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(result)
         val bounds = image.copyBounds()
@@ -106,7 +90,7 @@ class DrawingView @JvmOverloads constructor(
         image.draw(canvas)
         image.bounds = bounds
         canvas.translate(-offsetX, -offsetY)
-        drawStrokes(canvas)
+        drawStrokes(undo, canvas)
         return result
     }
 
@@ -118,7 +102,7 @@ class DrawingView @JvmOverloads constructor(
         canvas.concat(imageMatrix)
         canvas.clipRect(0, 0, image.intrinsicWidth, image.intrinsicHeight)
         canvas.translate(-offsetX, -offsetY)
-        drawStrokes(canvas)
+        drawStrokes(undo, canvas)
         canvas.restoreToCount(save)
     }
 
@@ -152,9 +136,9 @@ class DrawingView @JvmOverloads constructor(
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
             strokeJoin = Paint.Join.ROUND
-            strokeCap = this@DrawingView.strokeCap
-            color = strokeColor
-            strokeWidth = toImage.mapRadius(this@DrawingView.strokeWidth)
+            strokeCap = pen.mode.cap
+            color = ColorUtils.setAlphaComponent(pen.color, pen.mode.alpha)
+            strokeWidth = toImage.mapRadius(pen.mode.width)
         }
         val stroke = Stroke(Path().apply { moveTo(point[0], point[1]) }, paint)
         lastX = point[0]
@@ -166,8 +150,6 @@ class DrawingView @JvmOverloads constructor(
         notifyHistoryChanged()
     }
 
-    // Eases each point towards the finger and joins midpoints with quadratic curves,
-    // which removes the jitter of raw touch samples without visible lag.
     private fun continueStroke(x: Float, y: Float) {
         val path = current?.path ?: return
         mapToImage(x, y)
@@ -196,12 +178,6 @@ class DrawingView @JvmOverloads constructor(
         toImage.mapPoints(point)
         point[0] += offsetX
         point[1] += offsetY
-    }
-
-    private fun drawStrokes(canvas: Canvas) {
-        for (stroke in undo) {
-            canvas.drawPath(stroke.path, stroke.paint)
-        }
     }
 
     private fun notifyHistoryChanged() {

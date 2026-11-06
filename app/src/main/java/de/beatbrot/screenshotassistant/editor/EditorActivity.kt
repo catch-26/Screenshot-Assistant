@@ -1,10 +1,11 @@
-package de.beatbrot.screenshotassistant
+package de.beatbrot.screenshotassistant.editor
 
 import android.animation.TimeInterpolator
-import android.content.ActivityNotFoundException
 import android.content.ContentResolver
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.ImageDecoder
 import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
@@ -27,46 +28,41 @@ import androidx.annotation.AnimRes
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
-import de.beatbrot.screenshotassistant.crop.CropOutsideFadeView
-import de.beatbrot.screenshotassistant.databinding.ActivityMainBinding
-import de.beatbrot.screenshotassistant.sheets.drawsettings.DrawSettingsSheet
-import de.beatbrot.screenshotassistant.util.OpenAnimationListener
-import de.beatbrot.screenshotassistant.util.SaveResult
-import de.beatbrot.screenshotassistant.util.assistantScreenshotFile
-import de.beatbrot.screenshotassistant.util.fadeFilter
-import de.beatbrot.screenshotassistant.util.hasSaveAccess
-import de.beatbrot.screenshotassistant.util.isAssistantScreenshot
-import de.beatbrot.screenshotassistant.util.label
-import de.beatbrot.screenshotassistant.util.saveFolder
-import de.beatbrot.screenshotassistant.util.setSaveFolder
-import de.beatbrot.screenshotassistant.util.sharedPrefs
+import de.beatbrot.screenshotassistant.R
+import de.beatbrot.screenshotassistant.databinding.ActivityEditorBinding
+import de.beatbrot.screenshotassistant.databinding.ItemFormatRowBinding
+import de.beatbrot.screenshotassistant.editor.crop.CropOutsideFadeView
+import de.beatbrot.screenshotassistant.editor.crop.stopAutoZoom
+import de.beatbrot.screenshotassistant.editor.draw.DrawSettingsSheet
+import de.beatbrot.screenshotassistant.image.ImageFormat
+import de.beatbrot.screenshotassistant.image.SaveResult
+import de.beatbrot.screenshotassistant.image.saveFolder
+import de.beatbrot.screenshotassistant.image.shareIntent
+import de.beatbrot.screenshotassistant.util.LOG_TAG
+import de.beatbrot.screenshotassistant.util.launchIfAvailable
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class MainActivity : AppCompatActivity() {
-    private lateinit var v: ActivityMainBinding
-    private val drawSettingsSheet = DrawSettingsSheet()
-    private val viewModel by viewModels<ScreenshotActivityViewModel>()
+class EditorActivity : AppCompatActivity() {
+    private lateinit var v: ActivityEditorBinding
+    private val viewModel by viewModels<EditorViewModel>()
     private val saveFolderPicker = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { folder ->
-        val image = viewModel.pendingSave
-        viewModel.pendingSave = null
-        if (folder == null || image == null) {
-            showToast(getString(R.string.not_saved_no_access))
-        } else {
-            setSaveFolder(folder)
-            saveImage(image)
-        }
+        viewModel.onSaveFolderPicked(folder)
     }
     private val closeFormatDrawerOnBack = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
             viewModel.formatDrawerOpen.value = false
         }
     }
-    private lateinit var formatRows: Map<CheckedTextView, Bitmap.CompressFormat>
+    private val formatRows = mutableMapOf<ImageFormat, CheckedTextView>()
+    private var shownMode: EditingMode? = null
+
+    // The exported edit alias shares this activity; only the assistant's own screenshot gets the faded background.
+    private val fromAssistant: Boolean
+        get() = intent.action != Intent.ACTION_EDIT
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,56 +75,54 @@ class MainActivity : AppCompatActivity() {
             return
         }
         lifecycleScope.launch {
-            if (loadInitialImage(imgPath)) {
-                if (intent.action != Intent.ACTION_EDIT) {
-                    viewModel.screenshot?.let { showBackground(it) }
-                }
-            } else {
+            val screenshot = loadInitialImage(imgPath)
+            if (screenshot == null) {
                 closeWithoutScreenshot()
+                return@launch
             }
+            if (fromAssistant) {
+                showBackground(screenshot)
+            }
+            observeEditingMode(screenshot)
         }
     }
 
     private fun closeWithoutScreenshot() {
-        Toast.makeText(baseContext, R.string.error_no_screenshot, Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, R.string.error_no_screenshot, Toast.LENGTH_SHORT).show()
         finish()
     }
 
-    // The exported edit alias shares this activity, so each entry only accepts the URI kind it is meant for.
-    private fun initialImageUri(): Uri? = when (intent.action) {
-        Intent.ACTION_EDIT -> intent.data?.takeIf { it.scheme == ContentResolver.SCHEME_CONTENT }
-        else -> intent.getParcelableExtra("screenshot", Uri::class.java)?.takeIf { isAssistantScreenshot(it) }
+    private fun initialImageUri(): Uri? = if (fromAssistant) {
+        intent.assistantScreenshot(this)
+    } else {
+        intent.data?.takeIf { it.scheme == ContentResolver.SCHEME_CONTENT }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        when (viewModel.editingMode.value) {
-            EditingMode.PAINT -> viewModel.drawStack = v.drawingView.drawStack
-            else -> v.cropView.cropRect?.let { viewModel.cropRect = it }
-        }
+        keepEdits()
     }
 
     private fun initUI() {
-        v = ActivityMainBinding.inflate(layoutInflater)
+        v = ActivityEditorBinding.inflate(layoutInflater)
         setContentView(v.root)
-        supportFragmentManager.beginTransaction()
-            .replace(v.bottomSheet.id, drawSettingsSheet)
-            .commitNow()
-
-        drawSettingsSheet.onHideListener = { viewModel.editingMode.value = EditingMode.CROP }
+        val restoredSheet = supportFragmentManager.findFragmentById(v.bottomSheet.id) as? DrawSettingsSheet
+        val drawSettingsSheet = restoredSheet ?: DrawSettingsSheet()
+        drawSettingsSheet.onDone = { viewModel.editingMode.value = EditingMode.CROP }
         drawSettingsSheet.drawingView = v.drawingView
+        if (restoredSheet == null) {
+            supportFragmentManager.beginTransaction().add(v.bottomSheet.id, drawSettingsSheet).commitNow()
+        }
 
         CropOutsideFadeView.attachTo(v.cropView)
-
-        v.cropView.setOnSetImageUriCompleteListener { view, _, _ ->
-            view.cropRect = Rect(view.wholeImageRect)
-        }
 
         v.drawButton.setOnClickListener { viewModel.editingMode.value = EditingMode.PAINT }
 
         v.shareButton.setOnClickListener {
             viewModel.formatDrawerOpen.value = false
-            currentImage()?.let { viewModel.shareImage(it) }
+            currentImage()?.let { image ->
+                startActivity(Intent.createChooser(shareIntent(image, viewModel.imageFormat), getString(R.string.share_image)))
+            }
         }
 
         v.saveButton.setOnClickListener {
@@ -140,21 +134,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initFormatDrawer() {
-        formatRows = mapOf(
-            v.formatRowJpeg to Bitmap.CompressFormat.JPEG,
-            v.formatRowPng to Bitmap.CompressFormat.PNG,
-            v.formatRowWebp to Bitmap.CompressFormat.WEBP
-        )
-
-        v.formatChip.setOnClickListener {
-            viewModel.formatDrawerOpen.value = viewModel.formatDrawerOpen.value != true
-        }
-
-        formatRows.forEach { (row, format) ->
+        ImageFormat.entries.forEach { format ->
+            val row = ItemFormatRowBinding.inflate(layoutInflater, v.formatDrawer, true).root
+            row.text = format.label
             row.setOnClickListener {
                 viewModel.format.value = format
                 viewModel.formatDrawerOpen.value = false
             }
+            formatRows[format] = row
+        }
+
+        v.formatChip.setOnClickListener {
+            viewModel.formatDrawerOpen.value = viewModel.formatDrawerOpen.value != true
         }
 
         // Taps on the screenshot only close the drawer; the buttons below it stay usable.
@@ -164,32 +155,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initViewModel() {
-        viewModel.shareIntent.observe(this, Observer { intent ->
-            startActivity(Intent.createChooser(intent, baseContext.getString(R.string.share_image)))
-        })
-
-        viewModel.saveResult.observe(this, Observer { result ->
-            val message = when (result) {
-                is SaveResult.Saved -> getString(R.string.saved_to, result.folder)
-                is SaveResult.AlreadySaved -> getString(R.string.already_saved, result.folder)
-                SaveResult.StillSaving -> getString(R.string.still_saving)
-                SaveResult.NoAccess -> getString(R.string.not_saved_no_access)
-                is SaveResult.Failed -> getString(R.string.not_saved, result.error.localizedMessage ?: result.error.javaClass.simpleName)
-                null -> return@Observer
+        viewModel.saveEvent.observe(this) { event ->
+            if (event == null) return@observe
+            viewModel.onSaveEventShown()
+            when (event) {
+                is SaveEvent.Done -> showToast(saveMessage(event.result))
+                is SaveEvent.AlreadySaved -> showToast(getString(R.string.already_saved, event.folder))
+                SaveEvent.StillSaving -> showToast(getString(R.string.still_saving))
+                SaveEvent.ChooseFolder -> chooseSaveFolder()
             }
-            showToast(message)
-            viewModel.onSaveResultShown()
-        })
+        }
 
-        viewModel.format.observe(this, Observer { format ->
+        viewModel.format.observe(this) { format ->
             v.formatChip.text = format.label
             v.formatChip.contentDescription = getString(R.string.image_format_current, format.label)
-            formatRows.forEach { (row, rowFormat) -> row.isChecked = rowFormat == format }
-        })
+            formatRows.forEach { (rowFormat, row) -> row.isChecked = rowFormat == format }
+        }
 
-        viewModel.formatDrawerOpen.observe(this, Observer { open ->
+        viewModel.formatDrawerOpen.observe(this) { open ->
             if (open == (v.formatDrawer.visibility == View.VISIBLE)) {
-                return@Observer
+                return@observe
             }
             TransitionManager.beginDelayedTransition(v.root, AutoTransition().setDuration(FORMAT_DRAWER_DURATION))
             v.formatDrawer.visibility = if (open) View.VISIBLE else View.GONE
@@ -198,40 +183,44 @@ class MainActivity : AppCompatActivity() {
                 0, 0, if (open) R.drawable.ic_expand_less_18dp else R.drawable.ic_expand_more_18dp, 0
             )
             closeFormatDrawerOnBack.isEnabled = open
-        })
+        }
+    }
 
-        viewModel.editingMode.observe(this, Observer { newState ->
+    private fun observeEditingMode(screenshot: Bitmap) {
+        viewModel.editingMode.observe(this) { newState ->
+            keepEdits()
+            shownMode = newState
             when (newState) {
                 EditingMode.CROP -> {
                     hideBottomSheet()
                     showActionButtons(true)
-                    if (v.drawingView.drawable != null) {
-                        viewModel.drawStack = v.drawingView.drawStack
-                        v.drawingView.setImageDrawable(null)
-                    }
+                    v.drawingView.setImageDrawable(null)
                     v.drawingView.visibility = View.GONE
-                    showCropper()
+                    showCropper(screenshot)
                 }
                 EditingMode.PAINT -> {
-                    if (v.cropView.visibility == View.VISIBLE) {
-                        v.cropView.cropRect?.let { viewModel.cropRect = it }
-                    }
                     v.cropView.visibility = View.GONE
-                    showPainter()
+                    showPainter(screenshot)
                     viewModel.formatDrawerOpen.value = false
                     showActionButtons(false)
                     showBottomSheet()
                 }
-                else -> throw UnsupportedOperationException()
             }
-        })
+        }
+    }
+
+    private fun keepEdits() {
+        when (shownMode) {
+            EditingMode.PAINT -> viewModel.drawStack = v.drawingView.drawStack
+            EditingMode.CROP -> v.cropView.cropRect?.let { viewModel.cropRect = it }
+            null -> Unit
+        }
     }
 
     // The cropper shows the full screenshot with the edits painted on, so the crop can grow back out.
     // A crop from before the edit is set again once laid out, because only then does the cropper zoom in on it.
-    private fun showCropper() {
-        val screenshot = viewModel.screenshot ?: return
-        v.cropView.findViewById<View>(com.canhub.cropper.R.id.ImageView_image).clearAnimation()
+    private fun showCropper(screenshot: Bitmap) {
+        v.cropView.stopAutoZoom()
         v.cropView.setImageBitmap(viewModel.drawStack.paintedOnto(screenshot))
         val crop = viewModel.cropRect
         v.cropView.cropRect = crop ?: Rect(v.cropView.wholeImageRect)
@@ -244,26 +233,18 @@ class MainActivity : AppCompatActivity() {
         animateImageView(v.cropView, CROPPER_START_SCALE, DecelerateInterpolator())
     }
 
-    // The editor shows only the cropped part; its strokes stay in full screenshot coordinates.
-    private fun showPainter() {
-        val screenshot = viewModel.screenshot ?: return
-        val crop = Rect(viewModel.cropRect ?: Rect(0, 0, screenshot.width, screenshot.height))
-        if (!crop.intersect(0, 0, screenshot.width, screenshot.height) || crop.isEmpty) {
-            crop.set(0, 0, screenshot.width, screenshot.height)
-        }
-        v.drawingView.setImageBitmap(Bitmap.createBitmap(screenshot, crop.left, crop.top, crop.width(), crop.height()))
-        v.drawingView.setImageOffset(crop.left, crop.top)
-        v.drawingView.drawStack = viewModel.drawStack
+    private fun showPainter(screenshot: Bitmap) {
+        v.drawingView.show(screenshot, viewModel.cropRect, viewModel.drawStack)
         animateImageView(v.drawingView, PAINTER_START_SCALE, OvershootInterpolator())
     }
 
     @MainThread
-    private fun currentImage(): Bitmap? = when (viewModel.editingMode.value) {
-        EditingMode.PAINT -> v.drawingView.takeIf { it.drawable != null }?.exportImage()
-        else -> v.cropView.getCroppedImage()
+    private fun currentImage(): Bitmap? = when (shownMode) {
+        EditingMode.PAINT -> v.drawingView.exportImage()
+        EditingMode.CROP -> v.cropView.getCroppedImage()
+        null -> null
     }
 
-    // A chosen folder can lose its access grant at any time, so it is checked before every save.
     @MainThread
     private fun saveCurrentImage() {
         val image = currentImage()
@@ -271,21 +252,19 @@ class MainActivity : AppCompatActivity() {
             showToast(getString(R.string.not_saved_no_image))
             return
         }
-        saveImage(image)
+        viewModel.saveImage(image)
     }
 
-    private fun saveImage(image: Bitmap) {
-        if (hasSaveAccess()) {
-            viewModel.saveImage(image)
-            return
-        }
+    private fun saveMessage(result: SaveResult): String = when (result) {
+        is SaveResult.Saved -> getString(R.string.saved_to, result.folder)
+        SaveResult.NoAccess -> getString(R.string.not_saved_no_access)
+        is SaveResult.Failed -> getString(R.string.not_saved, result.error.localizedMessage ?: result.error.javaClass.simpleName)
+    }
+
+    private fun chooseSaveFolder() {
         showToast(getString(R.string.choose_save_folder_again))
-        viewModel.pendingSave = image
-        try {
-            saveFolderPicker.launch(sharedPrefs.saveFolder)
-        } catch (e: ActivityNotFoundException) {
-            viewModel.pendingSave = null
-            showToast(getString(R.string.not_saved_no_access))
+        if (!saveFolderPicker.launchIfAvailable(saveFolder)) {
+            viewModel.onSaveFolderPicked(null)
         }
     }
 
@@ -305,14 +284,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Shows the screenshot behind the editor, faded more than the cropper's cut-away area.
     private fun showBackground(screenshot: Bitmap) {
         v.root.background = BitmapDrawable(resources, screenshot).apply {
             colorFilter = fadeFilter(BACKGROUND_FADE)
         }
     }
 
-    // The editor zooms in with a bounce, the cropper settles back gently.
+    /** Reduces saturation and brightness by the same share, 0 = unchanged, 1 = black. */
+    private fun fadeFilter(reduction: Float): ColorMatrixColorFilter {
+        val keep = 1F - reduction
+        val matrix = ColorMatrix().apply {
+            setSaturation(keep)
+            postConcat(ColorMatrix().apply { setScale(keep, keep, keep, 1F) })
+        }
+        return ColorMatrixColorFilter(matrix)
+    }
+
     private fun animateImageView(imageView: View, startScale: Float, interpolator: TimeInterpolator) {
         imageView.apply {
             scaleX = startScale
@@ -355,8 +342,12 @@ class MainActivity : AppCompatActivity() {
         @AnimRes animRes: Int,
         crossinline onDone: () -> Unit
     ) {
-        val anim = AnimationUtils.loadAnimation(baseContext, animRes)
-        anim.setAnimationListener(object : OpenAnimationListener {
+        val anim = AnimationUtils.loadAnimation(this, animRes)
+        anim.setAnimationListener(object : Animation.AnimationListener {
+            override fun onAnimationStart(animation: Animation?) {}
+
+            override fun onAnimationRepeat(animation: Animation?) {}
+
             override fun onAnimationEnd(animation: Animation?) {
                 onDone()
             }
@@ -364,24 +355,24 @@ class MainActivity : AppCompatActivity() {
         view.startAnimation(anim)
     }
 
-    private suspend fun loadInitialImage(uri: Uri): Boolean {
-        if (viewModel.screenshot != null) {
-            return true
-        }
+    private suspend fun loadInitialImage(uri: Uri): Bitmap? {
+        viewModel.screenshot?.let { return it }
         val bitmap = try {
             withContext(Dispatchers.IO) { decodeImage(uri) }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            Log.e(TAG, "Could not load image", e)
-            return false
+            Log.e(LOG_TAG, "Could not load image", e)
+            return null
         } catch (e: OutOfMemoryError) {
-            Log.e(TAG, "Image too large to load", e)
-            return false
+            Log.e(LOG_TAG, "Image too large to load", e)
+            return null
         }
-        assistantScreenshotFile().delete()
+        if (fromAssistant) {
+            deleteAssistantScreenshot()
+        }
         viewModel.screenshot = bitmap
-        return true
+        return bitmap
     }
 
     // Images from other apps can be camera photos, so large ones are scaled down to keep the editor responsive.
@@ -402,7 +393,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private companion object {
-        const val TAG = "ScreenshotAssistant"
+        // More than the cropper's cut-away area, so the editor stands out from the screen behind it.
         const val BACKGROUND_FADE = 0.75F
         const val MAX_IMAGE_SIDE = 4096
         const val FORMAT_DRAWER_DURATION = 200L

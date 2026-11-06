@@ -1,4 +1,4 @@
-package de.beatbrot.screenshotassistant.boot
+package de.beatbrot.screenshotassistant.setup
 
 import android.content.BroadcastReceiver
 import android.content.Context

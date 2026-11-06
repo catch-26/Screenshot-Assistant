@@ -1,28 +1,31 @@
 package de.beatbrot.screenshotassistant
 
 import android.Manifest
-import android.content.pm.PackageManager
-import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.graphics.Bitmap
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import de.beatbrot.screenshotassistant.boot.cancelAssistantNotification
-import de.beatbrot.screenshotassistant.boot.checkAssistantOnBoot
-import de.beatbrot.screenshotassistant.boot.isDefaultAssistant
 import de.beatbrot.screenshotassistant.databinding.ActivityLauncherBinding
-import de.beatbrot.screenshotassistant.util.ScreenContextAccess
-import de.beatbrot.screenshotassistant.util.isDefaultSaveFolder
-import de.beatbrot.screenshotassistant.util.saveFolder
-import de.beatbrot.screenshotassistant.util.saveFolderLabel
-import de.beatbrot.screenshotassistant.util.setSaveFolder
-import de.beatbrot.screenshotassistant.util.screenContextAccess
-import de.beatbrot.screenshotassistant.util.screenContextRequestIntent
-import de.beatbrot.screenshotassistant.util.imageFormat
+import de.beatbrot.screenshotassistant.databinding.ItemFormatButtonBinding
+import de.beatbrot.screenshotassistant.image.ImageFormat
+import de.beatbrot.screenshotassistant.image.imageFormat
+import de.beatbrot.screenshotassistant.image.normalizeSaveFolder
+import de.beatbrot.screenshotassistant.image.saveFolder
+import de.beatbrot.screenshotassistant.image.saveFolderLabel
+import de.beatbrot.screenshotassistant.image.setSaveFolder
+import de.beatbrot.screenshotassistant.setup.ScreenContextAccess
+import de.beatbrot.screenshotassistant.setup.assistantSettingsIntent
+import de.beatbrot.screenshotassistant.setup.cancelAssistantNotification
+import de.beatbrot.screenshotassistant.setup.checkAssistantOnBoot
+import de.beatbrot.screenshotassistant.setup.isDefaultAssistant
+import de.beatbrot.screenshotassistant.setup.screenContextAccess
+import de.beatbrot.screenshotassistant.setup.screenContextRequestIntent
+import de.beatbrot.screenshotassistant.util.launchIfAvailable
 import de.beatbrot.screenshotassistant.util.sharedPrefs
+import de.beatbrot.screenshotassistant.util.startFirstAvailable
 
 class LauncherActivity : AppCompatActivity() {
     private lateinit var v: ActivityLauncherBinding
@@ -45,17 +48,12 @@ class LauncherActivity : AppCompatActivity() {
 
         listOf(v.assistantSettingsButton, v.assistantSettingsOutlinedButton).forEach { button ->
             button.setOnClickListener {
-                openSettings(Intent(Settings.ACTION_VOICE_INPUT_SETTINGS), Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
+                startFirstAvailable(assistantSettingsIntent(), Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
             }
         }
         v.introText.addOnLayoutChangeListener { _, _, top, _, bottom, _, _, _, _ -> matchCheckToIntro(bottom - top) }
         v.screenAccessButton.setOnClickListener {
-            screenContextRequestIntent()?.let {
-                try {
-                    screenContextRequest.launch(it)
-                } catch (e: ActivityNotFoundException) {
-                }
-            }
+            screenContextRequestIntent()?.let { screenContextRequest.launchIfAvailable(it) }
         }
         v.bootCheckSwitch.isChecked = checkAssistantOnBoot
         v.bootCheckSwitch.setOnCheckedChangeListener { _, checked ->
@@ -66,33 +64,30 @@ class LauncherActivity : AppCompatActivity() {
             }
         }
         initImageSettings()
-        v.saveFolderChangeButton.setOnClickListener {
-            try {
-                saveFolderPicker.launch(sharedPrefs.saveFolder)
-            } catch (e: ActivityNotFoundException) {
-            }
-        }
+        v.saveFolderChangeButton.setOnClickListener { saveFolderPicker.launchIfAvailable(saveFolder) }
         v.saveFolderDefaultButton.setOnClickListener {
             setSaveFolder(null)
             updateSaveFolder()
         }
         v.logsButton.setOnClickListener { startActivity(Intent(this, LogActivity::class.java)) }
-        v.header.versionText.text = getString(R.string.version_value, BuildConfig.VERSION_NAME)
+        v.header.showAppVersion()
         v.aboutButton.setOnClickListener { startActivity(Intent(this, AboutActivity::class.java)) }
     }
 
-    @Suppress("DEPRECATION")
     private fun initImageSettings() {
         val prefs = sharedPrefs
-        val formats = mapOf(
-            R.id.formatJpeg to Bitmap.CompressFormat.JPEG,
-            R.id.formatPng to Bitmap.CompressFormat.PNG,
-            R.id.formatWebp to Bitmap.CompressFormat.WEBP
-        )
-        v.formatGroup.check(formats.entries.first { it.value == prefs.imageFormat }.key)
+        val buttons = mutableMapOf<Int, ImageFormat>()
+        ImageFormat.entries.forEach { format ->
+            val button = ItemFormatButtonBinding.inflate(layoutInflater, v.formatGroup, false).root
+            button.id = View.generateViewId()
+            button.text = format.label
+            v.formatGroup.addView(button)
+            buttons[button.id] = format
+        }
+        v.formatGroup.check(buttons.entries.first { it.value == prefs.imageFormat }.key)
 
         v.formatGroup.addOnButtonCheckedListener { _, id, checked ->
-            val format = formats[id]
+            val format = buttons[id]
             if (checked && format != null) {
                 prefs.imageFormat = format
             }
@@ -106,11 +101,9 @@ class LauncherActivity : AppCompatActivity() {
     }
 
     private fun updateSaveFolder() {
-        if (sharedPrefs.saveFolder?.isDefaultSaveFolder == true) {
-            setSaveFolder(null)
-        }
+        normalizeSaveFolder()
         v.saveFolderText.text = saveFolderLabel()
-        v.saveFolderDefaultButton.visibility = if (sharedPrefs.saveFolder != null) View.VISIBLE else View.GONE
+        v.saveFolderDefaultButton.visibility = if (saveFolder != null) View.VISIBLE else View.GONE
     }
 
     private fun updateStatus() {
@@ -140,16 +133,6 @@ class LauncherActivity : AppCompatActivity() {
             params.width = height
             params.height = height
             v.assistantCheck.post { v.assistantCheck.layoutParams = params }
-        }
-    }
-
-    private fun openSettings(vararg intents: Intent) {
-        for (intent in intents) {
-            try {
-                startActivity(intent)
-                return
-            } catch (e: ActivityNotFoundException) {
-            }
         }
     }
 }
