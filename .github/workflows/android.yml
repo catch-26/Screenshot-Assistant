@@ -12,7 +12,7 @@ jobs:
           distribution: temurin
           java-version: '17'
       - name: Build
-        run: ./gradlew build --no-daemon 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+        run: ./gradlew build assembleDebugAndroidTest --no-daemon 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
       - name: Report build errors as annotation
         if: failure()
         run: |
