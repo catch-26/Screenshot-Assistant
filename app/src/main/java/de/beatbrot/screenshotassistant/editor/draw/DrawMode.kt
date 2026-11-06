@@ -11,7 +11,11 @@ enum class DrawMode(val defaultColor: Int, val alpha: Int, val width: Float, val
 }
 
 /** The color is stored without the mode's alpha. */
-data class Pen(val mode: DrawMode, val color: Int)
+data class Pen(val mode: DrawMode, val color: Int) {
+    companion object {
+        val DEFAULT = Pen(DrawMode.PEN, DrawMode.PEN.defaultColor)
+    }
+}
 
 private val DrawMode.colorKey: String
     get() = when (this) {

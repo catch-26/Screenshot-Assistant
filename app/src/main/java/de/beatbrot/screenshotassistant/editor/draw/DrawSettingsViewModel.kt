@@ -7,7 +7,7 @@ import androidx.lifecycle.ViewModel
 class DrawSettingsViewModel : ViewModel() {
     private val colors = DrawMode.entries.associateWith { it.defaultColor }.toMutableMap()
 
-    private val _pen = MutableLiveData(Pen(DrawMode.PEN, DrawMode.PEN.defaultColor))
+    private val _pen = MutableLiveData(Pen.DEFAULT)
     val pen: LiveData<Pen>
         get() = _pen
 

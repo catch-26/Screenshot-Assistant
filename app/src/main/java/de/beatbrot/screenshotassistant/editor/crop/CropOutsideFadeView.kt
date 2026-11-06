@@ -73,7 +73,7 @@ class CropOutsideFadeView private constructor(private val cropView: CropImageVie
 
     companion object {
         /** Brightness reduction outside the crop window; colors stay saturated. */
-        const val FADE = 0.5F
+        private const val FADE = 0.5F
 
         fun attachTo(cropView: CropImageView) {
             cropView.addView(

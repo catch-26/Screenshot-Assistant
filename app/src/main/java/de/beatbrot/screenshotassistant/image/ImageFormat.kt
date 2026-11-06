@@ -30,5 +30,5 @@ enum class ImageFormat(val label: String, private val compressFormat: Bitmap.Com
 private const val FORMAT_KEY = "image_format"
 
 var SharedPreferences.imageFormat: ImageFormat
-    get() = ImageFormat.valueOf(getString(FORMAT_KEY, null) ?: ImageFormat.PNG.name)
+    get() = getString(FORMAT_KEY, null).let { stored -> ImageFormat.entries.firstOrNull { it.name == stored } } ?: ImageFormat.PNG
     set(value) = edit().putString(FORMAT_KEY, value.name).apply()

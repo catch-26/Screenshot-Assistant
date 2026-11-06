@@ -17,7 +17,7 @@ data class DrawStack(val undo: List<Stroke> = emptyList(), val redo: List<Stroke
     }
 }
 
-fun drawStrokes(strokes: Iterable<Stroke>, canvas: Canvas) {
+internal fun drawStrokes(strokes: Iterable<Stroke>, canvas: Canvas) {
     for (stroke in strokes) {
         canvas.drawPath(stroke.path, stroke.paint)
     }

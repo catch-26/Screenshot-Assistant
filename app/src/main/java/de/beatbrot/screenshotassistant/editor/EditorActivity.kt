@@ -239,9 +239,10 @@ class EditorActivity : AppCompatActivity() {
     }
 
     @MainThread
-    private fun currentImage(): Bitmap? = when (viewModel.editingMode.value) {
+    private fun currentImage(): Bitmap? = when (shownMode) {
         EditingMode.PAINT -> v.drawingView.exportImage()
-        else -> v.cropView.getCroppedImage()
+        EditingMode.CROP -> v.cropView.getCroppedImage()
+        null -> null
     }
 
     @MainThread
@@ -392,7 +393,7 @@ class EditorActivity : AppCompatActivity() {
     }
 
     private companion object {
-        // More than the cropper's cut-away area (CropOutsideFadeView.FADE), so the editor stands out from the screen behind it.
+        // More than the cropper's cut-away area, so the editor stands out from the screen behind it.
         const val BACKGROUND_FADE = 0.75F
         const val MAX_IMAGE_SIDE = 4096
         const val FORMAT_DRAWER_DURATION = 200L

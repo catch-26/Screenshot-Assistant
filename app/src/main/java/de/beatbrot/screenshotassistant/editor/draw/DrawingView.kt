@@ -21,7 +21,7 @@ class DrawingView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : AppCompatImageView(context, attrs, defStyleAttr) {
 
-    var pen = Pen(DrawMode.PEN, DrawMode.PEN.defaultColor)
+    var pen = Pen.DEFAULT
 
     val drawStack: DrawStack
         get() = DrawStack(undo.toList(), redo.toList())
