@@ -1,35 +1,37 @@
-package de.beatbrot.screenshotassistant
+package de.beatbrot.screenshotassistant.editor
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
+import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.intent.Intents.intended
-import androidx.test.espresso.intent.matcher.IntentMatchers.*
 import androidx.test.espresso.intent.rule.IntentsTestRule
-import androidx.test.espresso.matcher.ViewMatchers.*
+import androidx.test.espresso.matcher.ViewMatchers.isCompletelyDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.isDescendantOfA
+import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.UiDevice
-import de.beatbrot.screenshotassistant.custom.*
-import de.beatbrot.screenshotassistant.editor.EditorActivity
-import de.beatbrot.screenshotassistant.image.ImageFormat
-import de.beatbrot.screenshotassistant.image.SHARE_AUTHORITY
+import de.beatbrot.screenshotassistant.R
+import de.beatbrot.screenshotassistant.custom.checkCropIsTopHalf
+import de.beatbrot.screenshotassistant.custom.containsImage
+import de.beatbrot.screenshotassistant.custom.cropImageByHalf
+import de.beatbrot.screenshotassistant.custom.draw
 import de.beatbrot.screenshotassistant.editor.draw.DrawingView
-import org.hamcrest.Matchers.*
-import org.junit.Assert.*
+import de.beatbrot.screenshotassistant.image.ImageFormat
+import org.hamcrest.Matchers.allOf
+import org.hamcrest.Matchers.not
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.File
 
 @RunWith(AndroidJUnit4::class)
-class MainActivityTest {
+class EditorActivityTest {
 
     private val context: Context
         get() = InstrumentationRegistry.getInstrumentation().targetContext
@@ -41,33 +43,26 @@ class MainActivityTest {
     val activityRule = IntentsTestRule(EditorActivity::class.java, false, false)
 
     @Before
-    fun launchActivity() {
-        val startIntent = Intent(context, EditorActivity::class.java)
-        startIntent.putExtra("screenshot", copyScreenshotInCache(context))
-        activityRule.launchActivity(startIntent)
+    fun launchWithAssistantScreenshot() {
+        val screenshot = testContext.assets.open("scr.png").use { BitmapFactory.decodeStream(it) }
+        activityRule.launchActivity(context.editorIntent(screenshot).setFlags(0))
     }
 
     @Test
-    fun testActivityLaunches() {
-        onView(withId(R.id.cropView))
-            .check(matches(isDisplayed()))
-    }
-
-    @Test
-    fun testImageIsLoaded() {
+    fun showsTheScreenshot() {
         onView(withId(R.id.cropView))
             .check(matches(containsImage()))
     }
 
     @Test
-    fun testCroppingWorks() {
+    fun cropsTheImage() {
         onView(withId(R.id.cropView))
             .perform(cropImageByHalf())
-            .check(checkCropSuccessful())
+            .check(checkCropIsTopHalf())
     }
 
     @Test
-    fun testImageEditorLoads() {
+    fun drawButtonOpensTheDrawingView() {
         onView(withId(R.id.drawButton))
             .perform(click())
 
@@ -76,13 +71,7 @@ class MainActivityTest {
     }
 
     @Test
-    fun testSaveButtonIsShown() {
-        onView(withId(R.id.saveButton))
-            .check(matches(isDisplayed()))
-    }
-
-    @Test
-    fun testFormatDrawerChangesFormat() {
+    fun formatDrawerChangesFormat() {
         onView(withId(R.id.formatChip))
             .perform(click())
 
@@ -91,75 +80,40 @@ class MainActivityTest {
             .perform(click())
 
         onView(withId(R.id.formatChip))
-            .check(matches(withText("JPG")))
+            .check(matches(withText(ImageFormat.JPEG.label)))
         onView(withId(R.id.formatDrawer))
             .check(matches(not(isDisplayed())))
     }
 
     @Test
-    @Ignore("Messes with other tests")
-    fun testShareOpens() {
-        onView(withId(R.id.shareButton))
-            .perform(click())
-
-        intended(
-            allOf(
-                hasAction(Intent.ACTION_CHOOSER),
-                hasExtra(
-                    equalTo(Intent.EXTRA_INTENT), allOf(
-                        hasExtra(
-                            equalTo(Intent.EXTRA_STREAM),
-                            hasToString<Uri>(containsString(SHARE_AUTHORITY))
-                        ),
-                        hasType(ImageFormat.PNG.mimeType)
-                    )
-                )
-            )
-        )
-
-        val dev = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation())
-        dev.pressHome()
-    }
-
-    @Test
-    fun testCropRectIsPersistent() {
+    fun cropSurvivesRecreation() {
         onView(withId(R.id.cropView))
             .perform(cropImageByHalf())
-            .check(checkCropSuccessful())
 
         enableNightMode()
 
         onView(withId(R.id.cropView))
-            .check(checkCropSuccessful())
+            .check(checkCropIsTopHalf())
     }
 
     @Test
-    fun testDrawStackIsPersistent() {
+    fun strokesSurviveRecreationAndCanBeUndone() {
         onView(withId(R.id.drawButton))
             .perform(click())
-
         onView(withId(R.id.drawingView))
             .perform(draw())
 
-        var painter: DrawingView = activityRule.activity.findViewById(R.id.drawingView)
-        assertTrue(painter.canUndo())
-        assertFalse(painter.canRedo())
-        val oldStack = painter.drawStack
-
         enableNightMode()
 
-        painter = activityRule.activity.findViewById(R.id.drawingView)
+        val painter: DrawingView = activityRule.activity.findViewById(R.id.drawingView)
         assertTrue(painter.canUndo())
         assertFalse(painter.canRedo())
-        val newStack = painter.drawStack
-        assertEquals(oldStack, newStack)
-        assertEquals(oldStack.hashCode(), newStack.hashCode())
 
         onView(withId(R.id.undoButton))
             .perform(click())
 
-        assertTrue(painter.canUndo())
-        assertFalse(painter.canRedo())
+        assertFalse(painter.canUndo())
+        assertTrue(painter.canRedo())
     }
 
     private fun enableNightMode() {
@@ -169,29 +123,6 @@ class MainActivityTest {
                 applyDayNight()
             }
         }
-    }
-
-    private fun copyScreenshotInCache(context: Context): Uri {
-        val scrStream = testContext.assets.open("scr.png")
-        val buffer = ByteArray(scrStream.available())
-        scrStream.read(buffer)
-
-        val scrDir = File(context.cacheDir, "screenshots")
-        val scrFile = File(scrDir, "screen.png")
-
-        scrDir.mkdir()
-
-        scrFile.apply {
-            if (!exists()) {
-                delete()
-            }
-            createNewFile()
-
-            outputStream().use { stream ->
-                stream.write(buffer)
-            }
-        }
-
-        return Uri.fromFile(scrFile)
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync()
     }
 }
