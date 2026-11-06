@@ -1,4 +1,4 @@
-package de.beatbrot.screenshotassistant.crop
+package de.beatbrot.screenshotassistant.editor.crop
 
 import android.annotation.SuppressLint
 import android.graphics.Canvas
@@ -13,7 +13,8 @@ import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import android.widget.ImageView
 import com.canhub.cropper.CropImageView
-import de.beatbrot.screenshotassistant.util.darkenFilter
+import de.beatbrot.screenshotassistant.editor.CROP_OUTSIDE_FADE
+import de.beatbrot.screenshotassistant.editor.darkenFilter
 
 /**
  * Draws the image darkened outside the crop window. It sits between the cropper's
@@ -22,10 +23,10 @@ import de.beatbrot.screenshotassistant.util.darkenFilter
 @SuppressLint("ViewConstructor")
 class CropOutsideFadeView private constructor(private val cropView: CropImageView) : View(cropView.context) {
 
-    private val image: ImageView = cropView.findViewById(com.canhub.cropper.R.id.ImageView_image)
+    private val image: ImageView = cropView.imageView
 
     private val paint = Paint(Paint.FILTER_BITMAP_FLAG).apply {
-        colorFilter = darkenFilter(FADE)
+        colorFilter = darkenFilter(CROP_OUTSIDE_FADE)
     }
 
     private val window = RectF()
@@ -70,8 +71,6 @@ class CropOutsideFadeView private constructor(private val cropView: CropImageVie
     }
 
     companion object {
-        const val FADE = 0.5F
-
         fun attachTo(cropView: CropImageView) {
             cropView.addView(
                 CropOutsideFadeView(cropView),
@@ -81,3 +80,7 @@ class CropOutsideFadeView private constructor(private val cropView: CropImageVie
         }
     }
 }
+
+/** The cropper's own image view, which the library does not expose. */
+val CropImageView.imageView: ImageView
+    get() = findViewById(com.canhub.cropper.R.id.ImageView_image)

@@ -7,7 +7,7 @@ import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction
 import androidx.test.espresso.ViewAssertion
 import com.canhub.cropper.CropImageView
-import de.beatbrot.screenshotassistant.draw.DrawingView
+import de.beatbrot.screenshotassistant.editor.draw.DrawingView
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers
 import org.junit.Assert.assertEquals

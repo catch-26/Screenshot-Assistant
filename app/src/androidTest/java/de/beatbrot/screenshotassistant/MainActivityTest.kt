@@ -15,7 +15,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiDevice
 import de.beatbrot.screenshotassistant.custom.*
-import de.beatbrot.screenshotassistant.draw.DrawingView
+import de.beatbrot.screenshotassistant.editor.EditorActivity
+import de.beatbrot.screenshotassistant.image.ImageFormat
+import de.beatbrot.screenshotassistant.image.SHARE_AUTHORITY
+import de.beatbrot.screenshotassistant.editor.draw.DrawingView
 import org.hamcrest.Matchers.*
 import org.junit.Assert.*
 import org.junit.Before
@@ -35,11 +38,11 @@ class MainActivityTest {
         get() = InstrumentationRegistry.getInstrumentation().context
 
     @get:Rule
-    val activityRule = IntentsTestRule(MainActivity::class.java, false, false)
+    val activityRule = IntentsTestRule(EditorActivity::class.java, false, false)
 
     @Before
     fun launchActivity() {
-        val startIntent = Intent(context, MainActivity::class.java)
+        val startIntent = Intent(context, EditorActivity::class.java)
         startIntent.putExtra("screenshot", copyScreenshotInCache(context))
         activityRule.launchActivity(startIntent)
     }
@@ -83,7 +86,7 @@ class MainActivityTest {
         onView(withId(R.id.formatChip))
             .perform(click())
 
-        onView(withId(R.id.formatRowJpeg))
+        onView(allOf(withText(ImageFormat.JPEG.label), isDescendantOfA(withId(R.id.formatDrawer))))
             .check(matches(isDisplayed()))
             .perform(click())
 
@@ -106,9 +109,9 @@ class MainActivityTest {
                     equalTo(Intent.EXTRA_INTENT), allOf(
                         hasExtra(
                             equalTo(Intent.EXTRA_STREAM),
-                            hasToString<Uri>(containsString(AUTHORITY_NAME))
+                            hasToString<Uri>(containsString(SHARE_AUTHORITY))
                         ),
-                        hasType(MIME_TYPE)
+                        hasType(ImageFormat.PNG.mimeType)
                     )
                 )
             )

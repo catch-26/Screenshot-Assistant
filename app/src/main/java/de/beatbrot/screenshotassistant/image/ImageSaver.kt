@@ -1,4 +1,4 @@
-package de.beatbrot.screenshotassistant.util
+package de.beatbrot.screenshotassistant.image
 
 import android.content.ContentValues
 import android.content.Context
@@ -9,10 +9,12 @@ import android.os.storage.StorageManager
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Log
+import de.beatbrot.screenshotassistant.util.LOG_TAG
+import de.beatbrot.screenshotassistant.util.sharedPrefs
 import java.io.IOException
 
-const val DEFAULT_SAVE_FOLDER = "Pictures/Screenshots"
-private const val TAG = "ScreenshotAssistant"
+private const val DEFAULT_SAVE_FOLDER = "Pictures/Screenshots"
+private const val FOLDER_KEY = "save_folder"
 private const val EXTERNAL_STORAGE_AUTHORITY = "com.android.externalstorage.documents"
 private const val PRIMARY_VOLUME = "primary"
 private const val TREE_FLAGS = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
@@ -21,13 +23,19 @@ sealed interface SaveResult {
     data class Saved(val folder: String) : SaveResult
     data class AlreadySaved(val folder: String) : SaveResult
     data object StillSaving : SaveResult
+    data object ChooseFolder : SaveResult
     data object NoAccess : SaveResult
     data class Failed(val error: Exception) : SaveResult
 }
 
+// Null is the default folder.
+val Context.saveFolder: Uri?
+    get() = sharedPrefs.getString(FOLDER_KEY, null)?.let(Uri::parse)
+
 // The default folder goes through MediaStore, which needs no permission for the app's own images.
-fun Context.hasSaveAccess(): Boolean {
-    val folder = sharedPrefs.saveFolder ?: return true
+// A chosen folder can lose its access grant at any time, so it is checked before every save.
+private fun Context.hasSaveAccess(): Boolean {
+    val folder = saveFolder ?: return true
     val granted = contentResolver.persistedUriPermissions.any { it.uri == folder && it.isWritePermission }
     return granted && folderExists(folder)
 }
@@ -35,7 +43,7 @@ fun Context.hasSaveAccess(): Boolean {
 // Picking Pictures/Screenshots on internal storage is the default folder, so it is stored as the default.
 fun Context.setSaveFolder(picked: Uri?) {
     val folder = picked?.takeUnless { it.isDefaultSaveFolder }
-    val old = sharedPrefs.saveFolder
+    val old = saveFolder
     if (folder != null) {
         contentResolver.takePersistableUriPermission(folder, TREE_FLAGS)
     }
@@ -45,15 +53,22 @@ fun Context.setSaveFolder(picked: Uri?) {
         } catch (e: SecurityException) {
         }
     }
-    sharedPrefs.saveFolder = folder
+    sharedPrefs.edit().putString(FOLDER_KEY, folder?.toString()).apply()
 }
 
-val Uri.isDefaultSaveFolder: Boolean
+// Versions up to v26.10.12 stored a picked Pictures/Screenshots folder instead of the default.
+fun Context.normalizeSaveFolder() {
+    if (saveFolder?.isDefaultSaveFolder == true) {
+        setSaveFolder(null)
+    }
+}
+
+private val Uri.isDefaultSaveFolder: Boolean
     get() = storageLocation?.let { (volume, path) -> volume == PRIMARY_VOLUME && path.equals(DEFAULT_SAVE_FOLDER, ignoreCase = true) } == true
 
 // Folders on device storage show their path from the storage root, like the default Pictures/Screenshots.
 fun Context.saveFolderLabel(): String {
-    val folder = sharedPrefs.saveFolder ?: return DEFAULT_SAVE_FOLDER
+    val folder = saveFolder ?: return DEFAULT_SAVE_FOLDER
     val (volume, path) = folder.storageLocation ?: return folderName(folder)
     val volumeName = if (volume == PRIMARY_VOLUME && path.isNotEmpty()) null else storageVolumeName(volume)
     return listOfNotNull(volumeName, path.ifEmpty { null }).joinToString("/")
@@ -69,26 +84,23 @@ private fun Context.folderName(folder: Uri): String {
     return name ?: folder.lastPathSegment.orEmpty()
 }
 
-// JPG and WEBP are always written at maximum quality.
-const val IMAGE_QUALITY = 100
-
-fun Context.saveImage(image: Bitmap, format: Bitmap.CompressFormat, fileName: String): SaveResult {
+fun Context.saveImage(image: Bitmap, format: ImageFormat, fileName: String): SaveResult {
     if (!hasSaveAccess()) {
         return SaveResult.NoAccess
     }
     return try {
-        when (val folder = sharedPrefs.saveFolder) {
+        when (val folder = saveFolder) {
             null -> saveToMediaStore(image, format, fileName)
             else -> saveToFolder(folder, image, format, fileName)
         }
         SaveResult.Saved(saveFolderLabel())
     } catch (e: Exception) {
-        Log.e(TAG, "Could not save $fileName", e)
+        Log.e(LOG_TAG, "Could not save $fileName", e)
         SaveResult.Failed(e)
     }
 }
 
-private fun Context.saveToMediaStore(image: Bitmap, format: Bitmap.CompressFormat, fileName: String) {
+private fun Context.saveToMediaStore(image: Bitmap, format: ImageFormat, fileName: String) {
     val values = ContentValues().apply {
         put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
         put(MediaStore.MediaColumns.MIME_TYPE, format.mimeType)
@@ -106,7 +118,7 @@ private fun Context.saveToMediaStore(image: Bitmap, format: Bitmap.CompressForma
     }
 }
 
-private fun Context.saveToFolder(folder: Uri, image: Bitmap, format: Bitmap.CompressFormat, fileName: String) {
+private fun Context.saveToFolder(folder: Uri, image: Bitmap, format: ImageFormat, fileName: String) {
     val uri = DocumentsContract.createDocument(contentResolver, folder.rootDocument, format.mimeType, fileName)
         ?: throw IOException("Could not create $fileName in $folder")
     try {
@@ -117,10 +129,10 @@ private fun Context.saveToFolder(folder: Uri, image: Bitmap, format: Bitmap.Comp
     }
 }
 
-private fun Context.writeImage(uri: Uri, image: Bitmap, format: Bitmap.CompressFormat) {
+private fun Context.writeImage(uri: Uri, image: Bitmap, format: ImageFormat) {
     val stream = contentResolver.openOutputStream(uri) ?: throw IOException("Could not open $uri")
     stream.use {
-        if (!image.compress(format, IMAGE_QUALITY, it)) {
+        if (!format.encode(image, it)) {
             throw IOException("Could not encode the image as ${format.name}")
         }
     }

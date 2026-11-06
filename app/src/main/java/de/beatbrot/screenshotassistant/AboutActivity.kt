@@ -17,12 +17,12 @@ class AboutActivity : AppCompatActivity() {
         v = ActivityAboutBinding.inflate(layoutInflater)
         setContentView(v.root)
 
-        v.header.versionText.text = getString(R.string.version_value, BuildConfig.VERSION_NAME)
+        v.header.showAppVersion()
 
-        v.projectList.addLink(R.drawable.ic_github_gray_24dp, getString(R.string.about_source), "catch-26/Screenshot-Assistant", "https://github.com/catch-26/Screenshot-Assistant")
-        v.projectList.addLink(R.drawable.ic_info_outline_gray_24dp, getString(R.string.about_releases), getString(R.string.about_releases_subtitle), "https://github.com/catch-26/Screenshot-Assistant/releases")
+        v.projectList.addLink(R.drawable.ic_github_gray_24dp, getString(R.string.about_source), "catch-26/Screenshot-Assistant", REPO_URL)
+        v.projectList.addLink(R.drawable.ic_info_outline_gray_24dp, getString(R.string.about_releases), getString(R.string.about_releases_subtitle), "$REPO_URL/releases")
         v.projectList.addLink(R.drawable.ic_grade_unfocused_24dp, getString(R.string.about_original), "beatbrot/ScreenshotAssistant", "https://github.com/beatbrot/ScreenshotAssistant")
-        v.projectList.addLink(R.drawable.ic_book_gray_24dp, getString(R.string.license), getString(R.string.apache_2), "https://github.com/catch-26/Screenshot-Assistant/blob/master/LICENSE")
+        v.projectList.addLink(R.drawable.ic_book_gray_24dp, getString(R.string.license), getString(R.string.apache_2), "$REPO_URL/blob/master/LICENSE")
 
         for (library in libraries) {
             v.libraryList.addLink(R.drawable.ic_book_gray_24dp, library.name, library.version, library.url)
@@ -35,6 +35,10 @@ class AboutActivity : AppCompatActivity() {
         item.title.text = title
         item.subtitle.text = subtitle
         item.root.setOnClickListener { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+    }
+
+    private companion object {
+        const val REPO_URL = "https://github.com/catch-26/Screenshot-Assistant"
     }
 
     private class Library(val name: String, val version: String, val url: String)
