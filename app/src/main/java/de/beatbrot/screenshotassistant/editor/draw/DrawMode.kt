@@ -10,7 +10,7 @@ enum class DrawMode(val defaultColor: Int, val alpha: Int, val width: Float, val
     MARKER(0xFFFACC15.toInt(), 255 / 3, 45F, Paint.Cap.SQUARE)
 }
 
-/** The chosen color is kept per mode and shown without the mode's alpha. */
+/** The color is stored without the mode's alpha. */
 data class Pen(val mode: DrawMode, val color: Int)
 
 private val DrawMode.colorKey: String

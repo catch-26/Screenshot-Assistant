@@ -5,11 +5,10 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 
-class Stroke internal constructor(internal val path: Path, internal val paint: Paint)
+class Stroke(val path: Path, val paint: Paint)
 
 /** Strokes in full screenshot coordinates, so the crop can grow again after editing. */
 data class DrawStack(val undo: List<Stroke> = emptyList(), val redo: List<Stroke> = emptyList()) {
-    /** Returns a copy of the full screenshot with the visible strokes painted on it. */
     fun paintedOnto(screenshot: Bitmap): Bitmap {
         if (undo.isEmpty()) return screenshot
         val result = screenshot.copy(Bitmap.Config.ARGB_8888, true)
@@ -18,7 +17,7 @@ data class DrawStack(val undo: List<Stroke> = emptyList(), val redo: List<Stroke
     }
 }
 
-internal fun drawStrokes(strokes: Iterable<Stroke>, canvas: Canvas) {
+fun drawStrokes(strokes: Iterable<Stroke>, canvas: Canvas) {
     for (stroke in strokes) {
         canvas.drawPath(stroke.path, stroke.paint)
     }

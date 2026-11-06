@@ -10,7 +10,7 @@ import java.io.File
 
 // Must match the files-path in res/xml/fileprovider.xml and the provider authority in the manifest.
 private const val SHARE_DIR = "screenshots"
-val SHARE_AUTHORITY = "${BuildConfig.APPLICATION_ID}.fileprovider"
+private val SHARE_AUTHORITY = "${BuildConfig.APPLICATION_ID}.fileprovider"
 
 // Only the latest shared image is kept, since the receiving app reads it right away.
 fun Context.shareIntent(image: Bitmap, format: ImageFormat): Intent {

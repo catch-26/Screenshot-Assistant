@@ -21,9 +21,6 @@ private const val TREE_FLAGS = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.F
 
 sealed interface SaveResult {
     data class Saved(val folder: String) : SaveResult
-    data class AlreadySaved(val folder: String) : SaveResult
-    data object StillSaving : SaveResult
-    data object ChooseFolder : SaveResult
     data object NoAccess : SaveResult
     data class Failed(val error: Exception) : SaveResult
 }
@@ -84,10 +81,11 @@ private fun Context.folderName(folder: Uri): String {
     return name ?: folder.lastPathSegment.orEmpty()
 }
 
-fun Context.saveImage(image: Bitmap, format: ImageFormat, fileName: String): SaveResult {
+fun Context.saveImage(image: Bitmap, format: ImageFormat): SaveResult {
     if (!hasSaveAccess()) {
         return SaveResult.NoAccess
     }
+    val fileName = format.newFileName()
     return try {
         when (val folder = saveFolder) {
             null -> saveToMediaStore(image, format, fileName)

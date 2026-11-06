@@ -26,9 +26,9 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
     private val context: Application
         get() = getApplication()
 
-    private val _saveResult = MutableLiveData<SaveResult?>()
-    val saveResult: LiveData<SaveResult?>
-        get() = _saveResult
+    private val _saveEvent = MutableLiveData<SaveEvent?>()
+    val saveEvent: LiveData<SaveEvent?>
+        get() = _saveEvent
 
     private var lastSaved: SavedImage? = null
     private var lastSavedFolder = ""
@@ -60,7 +60,7 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
     @MainThread
     fun saveImage(image: Bitmap) {
         if (saving) {
-            _saveResult.value = SaveResult.StillSaving
+            _saveEvent.value = SaveEvent.StillSaving
             return
         }
         val saved = SavedImage(image, imageFormat)
@@ -68,22 +68,25 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
         val previousFolder = lastSavedFolder
         saving = true
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) {
+            val event = withContext(Dispatchers.IO) {
                 if (previous?.matches(saved) == true) {
-                    SaveResult.AlreadySaved(previousFolder)
+                    SaveEvent.AlreadySaved(previousFolder)
                 } else {
-                    context.saveImage(saved.image, saved.format, saved.format.newFileName())
+                    SaveEvent.Done(context.saveImage(saved.image, saved.format))
                 }
             }
+            saving = false
+            val result = (event as? SaveEvent.Done)?.result
             if (result is SaveResult.Saved) {
                 lastSaved = saved
                 lastSavedFolder = result.folder
             }
-            if (result == SaveResult.NoAccess) {
+            _saveEvent.value = if (result == SaveResult.NoAccess) {
                 pendingSave = image
+                SaveEvent.ChooseFolder
+            } else {
+                event
             }
-            saving = false
-            _saveResult.value = if (result == SaveResult.NoAccess) SaveResult.ChooseFolder else result
         }
     }
 
@@ -92,16 +95,23 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
         val image = pendingSave
         pendingSave = null
         if (folder == null || image == null) {
-            _saveResult.value = SaveResult.NoAccess
+            _saveEvent.value = SaveEvent.Done(SaveResult.NoAccess)
             return
         }
         context.setSaveFolder(folder)
         saveImage(image)
     }
 
-    fun onSaveResultShown() {
-        _saveResult.value = null
+    fun onSaveEventShown() {
+        _saveEvent.value = null
     }
+}
+
+sealed interface SaveEvent {
+    data class Done(val result: SaveResult) : SaveEvent
+    data class AlreadySaved(val folder: String) : SaveEvent
+    data object StillSaving : SaveEvent
+    data object ChooseFolder : SaveEvent
 }
 
 private class SavedImage(val image: Bitmap, val format: ImageFormat) {

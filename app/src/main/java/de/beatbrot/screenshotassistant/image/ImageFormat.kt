@@ -17,7 +17,7 @@ enum class ImageFormat(val label: String, private val compressFormat: Bitmap.Com
     val mimeType: String
         get() = "image/${name.lowercase(Locale.ROOT)}"
 
-    val fileExtension: String
+    private val fileExtension: String
         get() = label.lowercase(Locale.ROOT)
 
     // JPG and WEBP are always written at maximum quality.

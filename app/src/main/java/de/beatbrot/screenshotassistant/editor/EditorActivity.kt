@@ -4,6 +4,8 @@ import android.animation.TimeInterpolator
 import android.content.ContentResolver
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.ImageDecoder
 import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
@@ -31,7 +33,7 @@ import de.beatbrot.screenshotassistant.R
 import de.beatbrot.screenshotassistant.databinding.ActivityEditorBinding
 import de.beatbrot.screenshotassistant.databinding.ItemFormatRowBinding
 import de.beatbrot.screenshotassistant.editor.crop.CropOutsideFadeView
-import de.beatbrot.screenshotassistant.editor.crop.imageView
+import de.beatbrot.screenshotassistant.editor.crop.stopAutoZoom
 import de.beatbrot.screenshotassistant.editor.draw.DrawSettingsSheet
 import de.beatbrot.screenshotassistant.image.ImageFormat
 import de.beatbrot.screenshotassistant.image.SaveResult
@@ -46,7 +48,6 @@ import kotlinx.coroutines.withContext
 
 class EditorActivity : AppCompatActivity() {
     private lateinit var v: ActivityEditorBinding
-    private val drawSettingsSheet = DrawSettingsSheet()
     private val viewModel by viewModels<EditorViewModel>()
     private val saveFolderPicker = registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { folder ->
         viewModel.onSaveFolderPicked(folder)
@@ -105,17 +106,15 @@ class EditorActivity : AppCompatActivity() {
     private fun initUI() {
         v = ActivityEditorBinding.inflate(layoutInflater)
         setContentView(v.root)
+        val restoredSheet = supportFragmentManager.findFragmentById(v.bottomSheet.id) as? DrawSettingsSheet
+        val drawSettingsSheet = restoredSheet ?: DrawSettingsSheet()
         drawSettingsSheet.onDone = { viewModel.editingMode.value = EditingMode.CROP }
         drawSettingsSheet.drawingView = v.drawingView
-        supportFragmentManager.beginTransaction()
-            .replace(v.bottomSheet.id, drawSettingsSheet)
-            .commitNow()
+        if (restoredSheet == null) {
+            supportFragmentManager.beginTransaction().add(v.bottomSheet.id, drawSettingsSheet).commitNow()
+        }
 
         CropOutsideFadeView.attachTo(v.cropView)
-
-        v.cropView.setOnSetImageUriCompleteListener { view, _, _ ->
-            view.cropRect = Rect(view.wholeImageRect)
-        }
 
         v.drawButton.setOnClickListener { viewModel.editingMode.value = EditingMode.PAINT }
 
@@ -156,16 +155,14 @@ class EditorActivity : AppCompatActivity() {
     }
 
     private fun initViewModel() {
-        viewModel.saveResult.observe(this) { result ->
-            if (result == null) return@observe
-            viewModel.onSaveResultShown()
-            when (result) {
-                is SaveResult.Saved -> showToast(getString(R.string.saved_to, result.folder))
-                is SaveResult.AlreadySaved -> showToast(getString(R.string.already_saved, result.folder))
-                SaveResult.StillSaving -> showToast(getString(R.string.still_saving))
-                SaveResult.ChooseFolder -> chooseSaveFolder()
-                SaveResult.NoAccess -> showToast(getString(R.string.not_saved_no_access))
-                is SaveResult.Failed -> showToast(getString(R.string.not_saved, result.error.localizedMessage ?: result.error.javaClass.simpleName))
+        viewModel.saveEvent.observe(this) { event ->
+            if (event == null) return@observe
+            viewModel.onSaveEventShown()
+            when (event) {
+                is SaveEvent.Done -> showToast(saveMessage(event.result))
+                is SaveEvent.AlreadySaved -> showToast(getString(R.string.already_saved, event.folder))
+                SaveEvent.StillSaving -> showToast(getString(R.string.still_saving))
+                SaveEvent.ChooseFolder -> chooseSaveFolder()
             }
         }
 
@@ -189,7 +186,6 @@ class EditorActivity : AppCompatActivity() {
         }
     }
 
-    // Only observed once the screenshot is loaded, so the first mode is shown with the image.
     private fun observeEditingMode(screenshot: Bitmap) {
         viewModel.editingMode.observe(this) { newState ->
             keepEdits()
@@ -213,7 +209,6 @@ class EditorActivity : AppCompatActivity() {
         }
     }
 
-    // Stores the edits of the mode this screen shows, so switching modes or recreating the editor keeps them.
     private fun keepEdits() {
         when (shownMode) {
             EditingMode.PAINT -> viewModel.drawStack = v.drawingView.drawStack
@@ -223,10 +218,9 @@ class EditorActivity : AppCompatActivity() {
     }
 
     // The cropper shows the full screenshot with the edits painted on, so the crop can grow back out.
-    // Its auto-zoom runs as a view animation with fillAfter, which would reapply a stale matrix if left attached.
     // A crop from before the edit is set again once laid out, because only then does the cropper zoom in on it.
     private fun showCropper(screenshot: Bitmap) {
-        v.cropView.imageView.clearAnimation()
+        v.cropView.stopAutoZoom()
         v.cropView.setImageBitmap(viewModel.drawStack.paintedOnto(screenshot))
         val crop = viewModel.cropRect
         v.cropView.cropRect = crop ?: Rect(v.cropView.wholeImageRect)
@@ -260,6 +254,12 @@ class EditorActivity : AppCompatActivity() {
         viewModel.saveImage(image)
     }
 
+    private fun saveMessage(result: SaveResult): String = when (result) {
+        is SaveResult.Saved -> getString(R.string.saved_to, result.folder)
+        SaveResult.NoAccess -> getString(R.string.not_saved_no_access)
+        is SaveResult.Failed -> getString(R.string.not_saved, result.error.localizedMessage ?: result.error.javaClass.simpleName)
+    }
+
     private fun chooseSaveFolder() {
         showToast(getString(R.string.choose_save_folder_again))
         if (!saveFolderPicker.launchIfAvailable(saveFolder)) {
@@ -289,7 +289,16 @@ class EditorActivity : AppCompatActivity() {
         }
     }
 
-    // The editor zooms in with a bounce, the cropper settles back gently.
+    /** Reduces saturation and brightness by the same share, 0 = unchanged, 1 = black. */
+    private fun fadeFilter(reduction: Float): ColorMatrixColorFilter {
+        val keep = 1F - reduction
+        val matrix = ColorMatrix().apply {
+            setSaturation(keep)
+            postConcat(ColorMatrix().apply { setScale(keep, keep, keep, 1F) })
+        }
+        return ColorMatrixColorFilter(matrix)
+    }
+
     private fun animateImageView(imageView: View, startScale: Float, interpolator: TimeInterpolator) {
         imageView.apply {
             scaleX = startScale
@@ -383,6 +392,8 @@ class EditorActivity : AppCompatActivity() {
     }
 
     private companion object {
+        // More than the cropper's cut-away area (CropOutsideFadeView.FADE), so the editor stands out from the screen behind it.
+        const val BACKGROUND_FADE = 0.75F
         const val MAX_IMAGE_SIDE = 4096
         const val FORMAT_DRAWER_DURATION = 200L
         const val CROPPER_START_SCALE = 0.95F

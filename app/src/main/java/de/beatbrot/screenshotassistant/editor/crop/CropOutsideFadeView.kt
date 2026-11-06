@@ -2,6 +2,8 @@ package de.beatbrot.screenshotassistant.editor.crop
 
 import android.annotation.SuppressLint
 import android.graphics.Canvas
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Rect
@@ -13,8 +15,6 @@ import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import android.widget.ImageView
 import com.canhub.cropper.CropImageView
-import de.beatbrot.screenshotassistant.editor.CROP_OUTSIDE_FADE
-import de.beatbrot.screenshotassistant.editor.darkenFilter
 
 /**
  * Draws the image darkened outside the crop window. It sits between the cropper's
@@ -26,7 +26,8 @@ class CropOutsideFadeView private constructor(private val cropView: CropImageVie
     private val image: ImageView = cropView.imageView
 
     private val paint = Paint(Paint.FILTER_BITMAP_FLAG).apply {
-        colorFilter = darkenFilter(CROP_OUTSIDE_FADE)
+        val keep = 1F - FADE
+        colorFilter = ColorMatrixColorFilter(ColorMatrix().apply { setScale(keep, keep, keep, 1F) })
     }
 
     private val window = RectF()
@@ -71,6 +72,9 @@ class CropOutsideFadeView private constructor(private val cropView: CropImageVie
     }
 
     companion object {
+        /** Brightness reduction outside the crop window; colors stay saturated. */
+        const val FADE = 0.5F
+
         fun attachTo(cropView: CropImageView) {
             cropView.addView(
                 CropOutsideFadeView(cropView),
@@ -82,5 +86,13 @@ class CropOutsideFadeView private constructor(private val cropView: CropImageVie
 }
 
 /** The cropper's own image view, which the library does not expose. */
-val CropImageView.imageView: ImageView
+private val CropImageView.imageView: ImageView
     get() = findViewById(com.canhub.cropper.R.id.ImageView_image)
+
+/**
+ * The cropper's auto-zoom runs as a view animation with fillAfter on its image view. Left attached,
+ * it reapplies a stale matrix once the cropper is shown with a new image.
+ */
+fun CropImageView.stopAutoZoom() {
+    imageView.clearAnimation()
+}

@@ -68,7 +68,6 @@ class DrawingView @JvmOverloads constructor(
         notifyHistoryChanged()
     }
 
-    /** Shows only the cropped part of the screenshot; a crop outside it shows the whole screenshot. */
     fun show(screenshot: Bitmap, crop: Rect?, stack: DrawStack) {
         val whole = Rect(0, 0, screenshot.width, screenshot.height)
         val part = Rect(crop ?: whole).takeIf { it.intersect(whole) && !it.isEmpty } ?: whole
@@ -151,8 +150,6 @@ class DrawingView @JvmOverloads constructor(
         notifyHistoryChanged()
     }
 
-    // Eases each point towards the finger and joins midpoints with quadratic curves,
-    // which removes the jitter of raw touch samples without visible lag.
     private fun continueStroke(x: Float, y: Float) {
         val path = current?.path ?: return
         mapToImage(x, y)
