@@ -9,7 +9,7 @@
     android:fitsSystemWindows="true"
     android:theme="@style/AppTheme"
     tools:context=".editor.EditorActivity"
-    tools:keep="@layout/activity_main">
+    tools:keep="@layout/activity_editor">
 
     <FrameLayout
         android:id="@+id/editorStack"
