@@ -39,7 +39,7 @@ fun draw() = object : ViewAction {
 fun checkCropIsTopHalf() = ViewAssertion { view, noViewFound ->
     if (noViewFound != null) throw noViewFound
     val cropView = view as CropImageView
-    assertEquals(cropView.wholeImageRect.height() / 2, cropView.getCroppedImage()!!.height)
+    assertEquals(cropView.wholeImageRect!!.height() / 2, cropView.getCroppedImage()!!.height)
 }
 
 private fun motionEvent(action: Int, x: Int, y: Int): MotionEvent {
