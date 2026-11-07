@@ -1,0 +1,4 @@
+- The screenshot shows once loaded; first crop view no longer empty.
+- Pen or marker choice kept on rotation.
+- Share no longer reopens after rotation.
+- Android Gradle Plugin 9.5.0.

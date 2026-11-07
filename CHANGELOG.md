@@ -1,3 +1,9 @@
+# v26.11.0 (2026-11-07)
+
+- Editor: the screenshot appears once it has loaded, so the first crop view no longer stays empty.
+- Editor: the chosen pen or marker is kept when the screen rotates, and Share no longer reopens the share sheet after a rotation.
+- Bump Android Gradle Plugin from 9.4.1 to 9.5.0.
+
 # v26.10.40 (2026-10-31)
 
 - Editor: the crop stays adjustable after drawing. The crop window can grow back to the full screenshot, and strokes keep their undo and redo history.
