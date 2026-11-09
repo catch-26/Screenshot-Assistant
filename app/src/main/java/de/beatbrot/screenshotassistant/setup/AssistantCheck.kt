@@ -22,6 +22,7 @@ private const val NOTIFICATION_ID = 1
 private const val PREF_KEY = "check_assistant_on_boot"
 private const val STATE_PREFS = "assistant_state"
 private const val READY_BOOT_KEY = "ready_boot_count"
+private const val WAS_ASSISTANT_KEY = "was_assistant"
 
 var Context.checkAssistantOnBoot: Boolean
     get() = sharedPrefs.getBoolean(PREF_KEY, false)
@@ -45,6 +46,16 @@ fun Context.markAssistantReady() {
     statePrefs.edit().putInt(READY_BOOT_KEY, bootCount).apply()
 }
 
+// Whether the app was the selected assistant the last time it looked. A user who picked another assistant gets no reminder.
+var Context.wasAssistant: Boolean
+    get() = statePrefs.getBoolean(WAS_ASSISTANT_KEY, false)
+    set(value) {
+        if (statePrefs.getBoolean(WAS_ASSISTANT_KEY, false) != value) {
+            statePrefs.edit().putBoolean(WAS_ASSISTANT_KEY, value).apply()
+            logEvent("Remembered as assistant: $value")
+        }
+    }
+
 private val Context.isActiveInteractor: Boolean
     get() = VoiceInteractionService.isActiveService(this, ComponentName(this, InteractionService::class.java))
 
@@ -59,7 +70,7 @@ fun Context.assistantState(): AssistantState = when {
 }
 
 fun Context.assistantDiagnosis(): String =
-    "role=$isDefaultAssistant active=$isActiveInteractor readySinceBoot=$readySinceBoot boot=$bootCount"
+    "role=$isDefaultAssistant wasAssistant=$wasAssistant active=$isActiveInteractor readySinceBoot=$readySinceBoot boot=$bootCount"
 
 // Disabling and re-enabling the service makes Android report it as changed, and Android then binds the assistant again.
 // The state ends where it started, so the selected assistant stays the same.
