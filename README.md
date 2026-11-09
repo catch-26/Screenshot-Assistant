@@ -4,11 +4,10 @@
 <h3 align="center">Screenshot Assistant</h3>
 
 <p align="center">Take a screenshot with the assist gesture, then crop, draw on and share it.</p>
-<p align="center">Images of the OG app:</p>
-
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2%20-%20cropped.png" width="30%">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3%20-%20draw.png" width="30%">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2%20-%20crop.png" alt="Cropping a screenshot" width="30%">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3%20-%20draw.png" alt="Drawing on a screenshot" width="30%">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5%20-%20setup.png" alt="Setup screen" width="30%">
 </p>
 
 ## Install
