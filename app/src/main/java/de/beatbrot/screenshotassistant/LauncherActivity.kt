@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -16,13 +17,16 @@ import de.beatbrot.screenshotassistant.image.normalizeSaveFolder
 import de.beatbrot.screenshotassistant.image.saveFolder
 import de.beatbrot.screenshotassistant.image.saveFolderLabel
 import de.beatbrot.screenshotassistant.image.setSaveFolder
+import de.beatbrot.screenshotassistant.setup.AssistantState
 import de.beatbrot.screenshotassistant.setup.ScreenContextAccess
+import de.beatbrot.screenshotassistant.setup.assistantState
+import de.beatbrot.screenshotassistant.setup.assistantDiagnosis
 import de.beatbrot.screenshotassistant.setup.assistantSettingsIntent
 import de.beatbrot.screenshotassistant.setup.cancelAssistantNotification
 import de.beatbrot.screenshotassistant.setup.checkAssistantOnBoot
-import de.beatbrot.screenshotassistant.setup.isDefaultAssistant
 import de.beatbrot.screenshotassistant.setup.screenContextAccess
 import de.beatbrot.screenshotassistant.setup.screenContextRequestIntent
+import de.beatbrot.screenshotassistant.util.LOG_TAG
 import de.beatbrot.screenshotassistant.util.launchIfAvailable
 import de.beatbrot.screenshotassistant.util.sharedPrefs
 import de.beatbrot.screenshotassistant.util.startFirstAvailable
@@ -107,10 +111,13 @@ class LauncherActivity : AppCompatActivity() {
     }
 
     private fun updateStatus() {
-        val isAssistant = isDefaultAssistant
+        val state = assistantState()
+        Log.d(LOG_TAG, "assistant $state (${assistantDiagnosis()})")
+        val isAssistant = state == AssistantState.OK
         if (isAssistant) cancelAssistantNotification()
         val access = if (isAssistant) screenContextAccess() else ScreenContextAccess.UNKNOWN
         val status = when {
+            state == AssistantState.NOT_STARTED -> R.string.launcher_status_not_started
             !isAssistant -> R.string.launcher_status_inactive
             access == ScreenContextAccess.REQUESTABLE -> R.string.launcher_status_no_screen_access
             access == ScreenContextAccess.UNREQUESTABLE -> R.string.launcher_status_screen_access_denied
