@@ -12,7 +12,6 @@ import android.content.pm.PackageManager
 import android.provider.Settings
 import android.service.voice.VoiceInteractionService
 import androidx.core.app.NotificationCompat
-import de.beatbrot.screenshotassistant.LauncherActivity
 import de.beatbrot.screenshotassistant.R
 import de.beatbrot.screenshotassistant.util.logEvent
 import de.beatbrot.screenshotassistant.util.sharedPrefs
@@ -90,19 +89,12 @@ fun Context.checkAssistantAndNotify(state: AssistantState = assistantState()) {
         assistantSettingsIntent().addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
     )
-    val app = PendingIntent.getActivity(
-        this, 1,
-        Intent(this, LauncherActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-    )
     val notification = NotificationCompat.Builder(this, CHANNEL_ID)
         .setSmallIcon(R.drawable.ic_notification)
         .setContentTitle(title)
         .setContentText(text)
         .setStyle(NotificationCompat.BigTextStyle().bigText(text))
         .setContentIntent(settings)
-        .addAction(0, getString(R.string.assistant_check_open_settings), settings)
-        .addAction(0, getString(R.string.assistant_check_open_app), app)
         .setAutoCancel(true)
         .build()
     manager.notify(NOTIFICATION_ID, notification)
