@@ -66,7 +66,7 @@ class ReadmeScreenshots {
             onView(withId(R.id.markerButton)).perform(click())
             scenario.onActivity { activity ->
                 val view = activity.findViewById<DrawingView>(R.id.drawingView)
-                stroke(view, listOf(0.13f to 0.2f, 0.5f to 0.2f))
+                stroke(view, listOf(0.13f to 0.25f, 0.52f to 0.25f))
             }
             onView(withId(R.id.penButton)).perform(click())
             scenario.onActivity { activity ->
