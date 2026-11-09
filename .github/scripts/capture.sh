@@ -12,7 +12,7 @@ demo notifications -e visible false
 adb shell cmd role add-role-holder android.app.role.ASSISTANT $PKG 0
 adb shell pm grant $PKG android.permission.POST_NOTIFICATIONS
 mkdir -p out
-for mode in no yes; do
+for mode in yes; do
   adb shell cmd uimode night $mode
   sleep 3
   demo enter

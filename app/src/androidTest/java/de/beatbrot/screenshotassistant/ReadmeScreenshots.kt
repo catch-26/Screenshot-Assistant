@@ -19,6 +19,9 @@ import com.canhub.cropper.CropImageView
 import de.beatbrot.screenshotassistant.editor.EditorActivity
 import de.beatbrot.screenshotassistant.editor.draw.DrawingView
 import de.beatbrot.screenshotassistant.editor.editorIntent
+import de.beatbrot.screenshotassistant.image.ImageFormat
+import de.beatbrot.screenshotassistant.image.imageFormat
+import de.beatbrot.screenshotassistant.util.sharedPrefs
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
@@ -33,6 +36,7 @@ class ReadmeScreenshots {
 
     @Test
     fun capture() {
+        context.sharedPrefs.imageFormat = ImageFormat.WEBP
         context.startActivity(Intent(Settings.ACTION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         settle(3000)
         var behind = instrumentation.uiAutomation.takeScreenshot()
@@ -48,16 +52,20 @@ class ReadmeScreenshots {
             settle(2500)
             shot("1 - editor")
 
+            var window = RectF()
+            val origin = IntArray(2)
             scenario.onActivity { activity ->
                 val crop = activity.findViewById<CropImageView>(R.id.cropView)
-                val whole = crop.wholeImageRect!!
-                crop.cropRect = Rect(
-                    whole.width() * 4 / 100,
-                    whole.height() * 22 / 100,
-                    whole.width() * 96 / 100,
-                    whole.height() * 52 / 100
-                )
+                window = RectF(crop.cropWindowRect!!)
+                crop.getLocationOnScreen(origin)
             }
+            val ox = origin[0].toFloat()
+            val oy = origin[1].toFloat()
+            fun at(fx: Float, fy: Float) = (ox + window.left + fx * window.width()) to (oy + window.top + fy * window.height())
+            drag(at(0f, 0f), at(0.10f, 0.27f))
+            settle(800)
+            drag(at(1f, 1f), at(0.62f, 0.45f))
+            settle(1200)
             settle(1500)
             shot("2 - crop")
 
@@ -66,14 +74,20 @@ class ReadmeScreenshots {
             onView(withId(R.id.markerButton)).perform(click())
             scenario.onActivity { activity ->
                 val view = activity.findViewById<DrawingView>(R.id.drawingView)
-                stroke(view, listOf(0.13f to 0.25f, 0.52f to 0.25f))
+                stroke(view, listOf(0.15f to 0.14f, 0.55f to 0.135f, 0.97f to 0.13f))
             }
             onView(withId(R.id.penButton)).perform(click())
             scenario.onActivity { activity ->
                 val view = activity.findViewById<DrawingView>(R.id.drawingView)
-                val points = (0..48).map { i ->
-                    val a = Math.toRadians(i * 7.5 + 200)
-                    (0.33f + 0.27f * Math.cos(a).toFloat()) to (0.56f + 0.2f * Math.sin(a).toFloat())
+                val steps = 90
+                val tilt = Math.toRadians(-5.0)
+                val points = (0..steps).map { i ->
+                    val t = i.toDouble() / steps
+                    val a = Math.toRadians(195 + t * 390)
+                    val wobble = 1 + 0.05 * Math.sin(2.3 * a + 1) + 0.025 * Math.sin(5.7 * a) - 0.07 * t
+                    val x = 0.45 * wobble * Math.cos(a)
+                    val y = 0.22 * wobble * Math.sin(a)
+                    (0.55 + x * Math.cos(tilt) - y * Math.sin(tilt)).toFloat() to (0.68 + x * Math.sin(tilt) + y * Math.cos(tilt)).toFloat()
                 }
                 stroke(view, points)
             }
@@ -108,6 +122,22 @@ class ReadmeScreenshots {
             }
         }
         return seen.size
+    }
+
+    private fun drag(from: Pair<Float, Float>, to: Pair<Float, Float>) {
+        val start = SystemClock.uptimeMillis()
+        val steps = 20
+        fun send(action: Int, i: Int, x: Float, y: Float) {
+            val event = MotionEvent.obtain(start, start + i * 16L, action, x, y, 0)
+            instrumentation.sendPointerSync(event)
+            event.recycle()
+        }
+        send(MotionEvent.ACTION_DOWN, 0, from.first, from.second)
+        for (i in 1..steps) {
+            val f = i.toFloat() / steps
+            send(MotionEvent.ACTION_MOVE, i, from.first + (to.first - from.first) * f, from.second + (to.second - from.second) * f)
+        }
+        send(MotionEvent.ACTION_UP, steps + 1, to.first, to.second)
     }
 
     private fun stroke(view: DrawingView, points: List<Pair<Float, Float>>) {
