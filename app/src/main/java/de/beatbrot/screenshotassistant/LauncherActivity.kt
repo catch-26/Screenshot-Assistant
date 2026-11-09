@@ -5,7 +5,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -24,15 +25,17 @@ import de.beatbrot.screenshotassistant.setup.assistantDiagnosis
 import de.beatbrot.screenshotassistant.setup.assistantSettingsIntent
 import de.beatbrot.screenshotassistant.setup.cancelAssistantNotification
 import de.beatbrot.screenshotassistant.setup.checkAssistantOnBoot
+import de.beatbrot.screenshotassistant.setup.restartAssistantService
 import de.beatbrot.screenshotassistant.setup.screenContextAccess
 import de.beatbrot.screenshotassistant.setup.screenContextRequestIntent
-import de.beatbrot.screenshotassistant.util.LOG_TAG
 import de.beatbrot.screenshotassistant.util.launchIfAvailable
+import de.beatbrot.screenshotassistant.util.logEvent
 import de.beatbrot.screenshotassistant.util.sharedPrefs
 import de.beatbrot.screenshotassistant.util.startFirstAvailable
 
 class LauncherActivity : AppCompatActivity() {
     private lateinit var v: ActivityLauncherBinding
+    private var lastState: AssistantState? = null
     private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         checkAssistantOnBoot = granted
         v.bootCheckSwitch.isChecked = granted
@@ -56,6 +59,14 @@ class LauncherActivity : AppCompatActivity() {
             }
         }
         v.introText.addOnLayoutChangeListener { _, _, top, _, bottom, _, _, _, _ -> matchCheckToIntro(bottom - top) }
+        v.restartAssistantButton.setOnClickListener {
+            v.restartAssistantButton.isEnabled = false
+            restartAssistantService("button")
+            Handler(Looper.getMainLooper()).postDelayed({
+                v.restartAssistantButton.isEnabled = true
+                updateStatus()
+            }, 3_000)
+        }
         v.screenAccessButton.setOnClickListener {
             screenContextRequestIntent()?.let { screenContextRequest.launchIfAvailable(it) }
         }
@@ -112,7 +123,10 @@ class LauncherActivity : AppCompatActivity() {
 
     private fun updateStatus() {
         val state = assistantState()
-        Log.d(LOG_TAG, "assistant $state (${assistantDiagnosis()})")
+        if (state != lastState) {
+            logEvent("App: assistant $state (${assistantDiagnosis()})")
+            lastState = state
+        }
         val isAssistant = state == AssistantState.OK
         if (isAssistant) cancelAssistantNotification()
         val access = if (isAssistant) screenContextAccess() else ScreenContextAccess.UNKNOWN
@@ -125,6 +139,7 @@ class LauncherActivity : AppCompatActivity() {
         }
         v.setupWarning.visibility = if (status != null) View.VISIBLE else View.GONE
         status?.let { v.statusText.setText(it) }
+        v.restartAssistantButton.visibility = if (state == AssistantState.NOT_STARTED) View.VISIBLE else View.GONE
         v.screenAccessButton.visibility = if (access == ScreenContextAccess.REQUESTABLE) View.VISIBLE else View.GONE
         v.assistantCheck.visibility = if (isAssistant) View.VISIBLE else View.INVISIBLE
         // Filled buttons mark a step that still needs action; once done, the settings button turns outlined like the others.

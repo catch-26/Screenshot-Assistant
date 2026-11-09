@@ -44,7 +44,8 @@
     <string name="assistant_check_text">Android reset the digital assistant app, often after a system update. Pick Screenshot Assistant again.</string>
     <string name="assistant_check_title_not_started">Screenshot Assistant did not start</string>
     <string name="assistant_check_text_not_started">Android did not start the assistant after the restart, so the gesture does nothing. In the digital assistant settings, pick another app, then Screenshot Assistant again.</string>
-    <string name="launcher_status_not_started">Android did not start the assistant after the restart. Pick another app there, then Screenshot Assistant again.</string>
+    <string name="launcher_status_not_started">Android did not start the assistant after the restart. Tap Restart assistant. If that does not help, pick another app in the settings, then Screenshot Assistant again.</string>
+    <string name="launcher_restart_assistant">Restart assistant</string>
     <string name="assistant_check_open_settings">Open settings</string>
     <string name="assistant_check_open_app">Open app</string>
     <string name="save">Save</string>

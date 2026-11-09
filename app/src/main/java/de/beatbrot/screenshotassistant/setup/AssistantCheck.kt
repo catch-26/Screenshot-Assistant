@@ -8,11 +8,13 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.provider.Settings
 import android.service.voice.VoiceInteractionService
 import androidx.core.app.NotificationCompat
 import de.beatbrot.screenshotassistant.LauncherActivity
 import de.beatbrot.screenshotassistant.R
+import de.beatbrot.screenshotassistant.util.logEvent
 import de.beatbrot.screenshotassistant.util.sharedPrefs
 import de.beatbrot.screenshotassistant.voice.InteractionService
 
@@ -59,6 +61,15 @@ fun Context.assistantState(): AssistantState = when {
 
 fun Context.assistantDiagnosis(): String =
     "role=$isDefaultAssistant active=$isActiveInteractor readySinceBoot=$readySinceBoot boot=$bootCount"
+
+// Disabling and re-enabling the service makes Android report it as changed, and Android then binds the assistant again.
+// The state ends where it started, so the selected assistant stays the same.
+fun Context.restartAssistantService(reason: String) {
+    logEvent("Restarting assistant service ($reason)")
+    val component = ComponentName(this, InteractionService::class.java)
+    packageManager.setComponentEnabledSetting(component, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
+    packageManager.setComponentEnabledSetting(component, PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, PackageManager.DONT_KILL_APP)
+}
 
 fun Context.checkAssistantAndNotify(state: AssistantState = assistantState()) {
     val manager = getSystemService(NotificationManager::class.java)

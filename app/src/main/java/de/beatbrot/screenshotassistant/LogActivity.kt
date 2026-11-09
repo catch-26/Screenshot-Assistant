@@ -7,6 +7,7 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.doOnNextLayout
 import de.beatbrot.screenshotassistant.databinding.ActivityLogsBinding
+import de.beatbrot.screenshotassistant.util.readEvents
 import java.io.IOException
 import kotlin.concurrent.thread
 
@@ -45,6 +46,10 @@ class LogActivity : AppCompatActivity() {
             appendLine("osVersion: ${Build.FINGERPRINT}")
             appendLine("package: $packageName:${BuildConfig.VERSION_CODE} (${BuildConfig.VERSION_NAME}), targetSdk ${applicationInfo.targetSdkVersion}")
             appendLine()
+            appendLine("--------- assistant events (kept by the app)")
+            append(readEvents())
+            appendLine()
+            appendLine("--------- logcat")
         }
         return try {
             val process = ProcessBuilder("logcat", "-d", "-v", "threadtime", "-b", "main,system,crash,events", "-t", "2000")
