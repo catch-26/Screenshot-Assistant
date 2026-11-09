@@ -23,7 +23,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Build
-        run: ./gradlew assembleDebug assembleDebugAndroidTest --no-daemon 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
+        run: ./gradlew build assembleDebugAndroidTest --no-daemon 2>&1 | tee build.log; exit ${PIPESTATUS[0]}
       - name: Capture
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -40,7 +40,7 @@ jobs:
       - name: Report errors as annotation
         if: always()
         run: |
-          { tail -30 build.log 2>/dev/null; grep -E "FAILURES|Error|Exception|at de\.|OK \(" instrument.log 2>/dev/null | head -40; ls out 2>/dev/null; } > summary.txt
+          { tail -30 build.log 2>/dev/null; grep -E "FAILURES|Error|Exception|at de\.|OK \(" instrument.log 2>/dev/null | head -40; ls out 2>/dev/null || true; } > summary.txt
           msg=$(sed -e 's/%/%25/g' summary.txt | sed -e ':a;N;$!ba;s/\n/%0A/g')
           echo "::warning title=Screenshot run::$msg"
       - name: Commit screenshots
