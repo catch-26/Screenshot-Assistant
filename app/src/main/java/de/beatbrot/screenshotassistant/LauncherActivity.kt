@@ -28,6 +28,7 @@ import de.beatbrot.screenshotassistant.setup.checkAssistantOnBoot
 import de.beatbrot.screenshotassistant.setup.restartAssistantService
 import de.beatbrot.screenshotassistant.setup.screenContextAccess
 import de.beatbrot.screenshotassistant.setup.screenContextRequestIntent
+import de.beatbrot.screenshotassistant.setup.wasAssistant
 import de.beatbrot.screenshotassistant.util.launchIfAvailable
 import de.beatbrot.screenshotassistant.util.logEvent
 import de.beatbrot.screenshotassistant.util.sharedPrefs
@@ -123,6 +124,7 @@ class LauncherActivity : AppCompatActivity() {
 
     private fun updateStatus() {
         val state = assistantState()
+        wasAssistant = state != AssistantState.NOT_SELECTED
         if (state != lastState) {
             logEvent("App: assistant $state (${assistantDiagnosis()})")
             lastState = state

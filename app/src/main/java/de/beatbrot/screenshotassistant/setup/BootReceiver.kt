@@ -49,7 +49,10 @@ class BootReceiver : BroadcastReceiver() {
 
     private fun finish(app: Context, action: String, state: AssistantState, pending: PendingResult) {
         app.logEvent("$action: assistant $state (${app.assistantDiagnosis()})")
-        if (app.checkAssistantOnBoot) app.checkAssistantAndNotify(state)
+        val notify = app.checkAssistantOnBoot && (state != AssistantState.NOT_SELECTED || app.wasAssistant)
+        if (notify) app.checkAssistantAndNotify(state)
+        // Remind about a lost assistant selection once; after that the app counts as deselected.
+        app.wasAssistant = state != AssistantState.NOT_SELECTED
         pending.finish()
     }
 }
