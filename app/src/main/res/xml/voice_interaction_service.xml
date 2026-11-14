@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <voice-interaction-service xmlns:android="http://schemas.android.com/apk/res/android"
-    android:recognitionService="de.beatbrot.screenshotassistant.voice.InteractionService"
-    android:sessionService="de.beatbrot.screenshotassistant.voice.InteractionSessionService"
+    android:recognitionService="de.paradox.screenshotassistant.voice.InteractionService"
+    android:sessionService="de.paradox.screenshotassistant.voice.InteractionSessionService"
     android:supportsAssist="true"
     android:usesAssistData="true"
     android:usesAssistScreenshots="true" />

@@ -1,0 +1,8 @@
+- Crop stays adjustable after drawing, with undo and redo.
+- Editor works like a normal app and stays open while sharing.
+- A new assistant gesture always opens the new screenshot.
+- Gentler animation when accepting a drawing.
+- Picking a format closes the drawer; formats listed A to Z.
+- Cropped-out area is darkened, colors kept.
+- Edit offered only for supported image formats.
+- Security: the editor only opens the intended image.

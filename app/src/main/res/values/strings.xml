@@ -3,10 +3,8 @@
     <string name="launcher_name">Screenshot</string>
     <string name="copyright" translatable="false">© beatbrot 2019 · catch-26 2026</string>
     <string name="about">About</string>
-    <string name="github" translatable="false">GitHub</string>
     <string name="apache_2" translatable="false">Apache 2.0</string>
     <string name="license">License</string>
-    <string name="version">Version</string>
     <string name="share">Share</string>
     <string name="draw">Draw</string>
     <string name="error_no_screenshot">Error: Screenshot could not be captured</string>
@@ -40,12 +38,14 @@
     <string name="about_releases">Releases</string>
     <string name="about_releases_subtitle">Signed APKs and changelog</string>
     <string name="about_original">Based on</string>
-    <string name="launcher_boot_check">Remind me after a restart if the assistant was reset</string>
+    <string name="launcher_boot_check">Remind me after a restart if the assistant was reset or did not start</string>
     <string name="assistant_check_channel">Digital assistant check</string>
     <string name="assistant_check_title">Screenshot Assistant is no longer your assistant</string>
-    <string name="assistant_check_text">Android reset the digital assistant app, often after a system update. Pick Screenshot Assistant again.</string>
-    <string name="assistant_check_open_settings">Open settings</string>
-    <string name="assistant_check_open_app">Open app</string>
+    <string name="assistant_check_text">Android reset the digital assistant. Tap here to open the settings and pick Screenshot Assistant again.</string>
+    <string name="assistant_check_title_not_started">Screenshot Assistant is inactive</string>
+    <string name="assistant_check_text_not_started">Tap to re-select it in the digital assistant settings.</string>
+    <string name="launcher_status_not_started">Android did not start the assistant after the restart. Tap Restart assistant. If that does not help, pick another app in the settings, then Screenshot Assistant again.</string>
+    <string name="launcher_restart_assistant">Restart assistant</string>
     <string name="save">Save</string>
     <string name="saved_to">Saved to %1$s</string>
     <string name="already_saved">Already saved to %1$s</string>
