@@ -27,7 +27,7 @@
             android:layout_height="match_parent"
             app:cropBackgroundColor="@android:color/transparent" />
 
-        <de.beatbrot.screenshotassistant.editor.draw.DrawingView
+        <de.paradox.screenshotassistant.editor.draw.DrawingView
             android:id="@+id/drawingView"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

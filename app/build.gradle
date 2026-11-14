@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'de.beatbrot.screenshotassistant'
+    namespace 'de.paradox.screenshotassistant'
     compileSdk 37
 
     defaultConfig {
