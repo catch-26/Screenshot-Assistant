@@ -5,8 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
-import android.os.Handler
-import android.os.Looper
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -25,7 +23,6 @@ import de.paradox.screenshotassistant.setup.assistantDiagnosis
 import de.paradox.screenshotassistant.setup.assistantSettingsIntent
 import de.paradox.screenshotassistant.setup.cancelAssistantNotification
 import de.paradox.screenshotassistant.setup.checkAssistantOnBoot
-import de.paradox.screenshotassistant.setup.restartAssistantService
 import de.paradox.screenshotassistant.setup.screenContextAccess
 import de.paradox.screenshotassistant.setup.screenContextRequestIntent
 import de.paradox.screenshotassistant.setup.wasAssistant
@@ -60,14 +57,6 @@ class LauncherActivity : AppCompatActivity() {
             }
         }
         v.introText.addOnLayoutChangeListener { _, _, top, _, bottom, _, _, _, _ -> matchCheckToIntro(bottom - top) }
-        v.restartAssistantButton.setOnClickListener {
-            v.restartAssistantButton.isEnabled = false
-            restartAssistantService("button")
-            Handler(Looper.getMainLooper()).postDelayed({
-                v.restartAssistantButton.isEnabled = true
-                updateStatus()
-            }, 3_000)
-        }
         v.screenAccessButton.setOnClickListener {
             screenContextRequestIntent()?.let { screenContextRequest.launchIfAvailable(it) }
         }
@@ -141,7 +130,6 @@ class LauncherActivity : AppCompatActivity() {
         }
         v.setupWarning.visibility = if (status != null) View.VISIBLE else View.GONE
         status?.let { v.statusText.setText(it) }
-        v.restartAssistantButton.visibility = if (state == AssistantState.NOT_STARTED) View.VISIBLE else View.GONE
         v.screenAccessButton.visibility = if (access == ScreenContextAccess.REQUESTABLE) View.VISIBLE else View.GONE
         v.assistantCheck.visibility = if (isAssistant) View.VISIBLE else View.INVISIBLE
         // Filled buttons mark a step that still needs action; once done, the settings button turns outlined like the others.
