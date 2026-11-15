@@ -8,6 +8,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.os.UserManager
 import android.provider.Settings
 import android.service.voice.VoiceInteractionService
 import androidx.core.app.NotificationCompat
@@ -23,9 +24,16 @@ private const val STATE_PREFS = "assistant_state"
 private const val READY_BOOT_KEY = "ready_boot_count"
 private const val WAS_ASSISTANT_KEY = "was_assistant"
 
+// Device protected, so the boot check can read it before the first unlock. Earlier versions kept it in the normal
+// settings; that value is copied over the first time the app reads it while the device is unlocked.
 var Context.checkAssistantOnBoot: Boolean
-    get() = sharedPrefs.getBoolean(PREF_KEY, false)
-    set(value) = sharedPrefs.edit().putBoolean(PREF_KEY, value).apply()
+    get() {
+        if (!statePrefs.contains(PREF_KEY) && getSystemService(UserManager::class.java).isUserUnlocked) {
+            checkAssistantOnBoot = sharedPrefs.getBoolean(PREF_KEY, false)
+        }
+        return statePrefs.getBoolean(PREF_KEY, false)
+    }
+    set(value) = statePrefs.edit().putBoolean(PREF_KEY, value).apply()
 
 fun assistantSettingsIntent() = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
 
