@@ -9,12 +9,12 @@ import android.os.SystemClock
 import android.os.UserManager
 import de.paradox.screenshotassistant.util.logEvent
 
-private const val FIRST_WAIT_MS = 20_000L
-private const val AFTER_RESTART_WAIT_MS = 15_000L
-private const val POLL_MS = 2_000L
+private const val MAX_WAIT_MS = 8_000L
+private const val POLL_MS = 1_000L
 
-// Android may bind the assistant a few seconds after the broadcast, so wait for it. If it still has not,
-// ask Android to bind it again once, and only warn if that did not help either.
+// A short check after boot or an app update: wait a few seconds for Android to start the assistant, then remind once
+// if it did not. The wait stays well inside Android's time limit for broadcasts, so the app is not killed before it
+// can post the reminder. If the service starts later after all, it removes the reminder itself.
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action ?: return
@@ -28,31 +28,30 @@ class BootReceiver : BroadcastReceiver() {
         app.logEvent("$action received: ${app.assistantDiagnosis()}")
         val pending = goAsync()
         val handler = Handler(Looper.getMainLooper())
-        var restarted = false
-        var deadline = SystemClock.uptimeMillis() + FIRST_WAIT_MS
+        val deadline = SystemClock.uptimeMillis() + MAX_WAIT_MS
         fun check() {
-            val state = app.assistantState()
-            when {
-                state == AssistantState.OK || state == AssistantState.NOT_SELECTED -> finish(app, action, state, pending)
-                SystemClock.uptimeMillis() < deadline -> handler.postDelayed({ check() }, POLL_MS)
-                !restarted -> {
-                    restarted = true
-                    app.restartAssistantService("$action check")
-                    deadline = SystemClock.uptimeMillis() + AFTER_RESTART_WAIT_MS
+            try {
+                val state = app.assistantState()
+                if (state == AssistantState.NOT_STARTED && SystemClock.uptimeMillis() < deadline) {
                     handler.postDelayed({ check() }, POLL_MS)
+                    return
                 }
-                else -> finish(app, action, state, pending)
+                finish(app, action, state)
+            } catch (e: RuntimeException) {
+                app.logEvent("$action check failed: $e")
             }
+            pending.finish()
         }
         check()
     }
 
-    private fun finish(app: Context, action: String, state: AssistantState, pending: PendingResult) {
+    private fun finish(app: Context, action: String, state: AssistantState) {
         app.logEvent("$action: assistant $state (${app.assistantDiagnosis()})")
-        val notify = app.checkAssistantOnBoot && (state != AssistantState.NOT_SELECTED || app.wasAssistant)
+        val remind = app.checkAssistantOnBoot
+        val notify = remind && (state != AssistantState.NOT_SELECTED || app.wasAssistant)
         if (notify) app.checkAssistantAndNotify(state)
+        else if (state != AssistantState.OK) app.logEvent("$action: no reminder (switch on: $remind, was assistant: ${app.wasAssistant})")
         // Remind about a lost assistant selection once; after that the app counts as deselected.
         app.wasAssistant = state != AssistantState.NOT_SELECTED
-        pending.finish()
     }
 }
