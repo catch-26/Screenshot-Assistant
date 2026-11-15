@@ -8,7 +8,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import android.provider.Settings
 import android.service.voice.VoiceInteractionService
 import androidx.core.app.NotificationCompat
@@ -72,15 +71,6 @@ fun Context.assistantState(): AssistantState = when {
 fun Context.assistantDiagnosis(): String =
     "role=$isDefaultAssistant wasAssistant=$wasAssistant active=$isActiveInteractor readySinceBoot=$readySinceBoot boot=$bootCount"
 
-// Disabling and re-enabling the service makes Android report it as changed, and Android then binds the assistant again.
-// The state ends where it started, so the selected assistant stays the same.
-fun Context.restartAssistantService(reason: String) {
-    logEvent("Restarting assistant service ($reason)")
-    val component = ComponentName(this, InteractionService::class.java)
-    packageManager.setComponentEnabledSetting(component, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP)
-    packageManager.setComponentEnabledSetting(component, PackageManager.COMPONENT_ENABLED_STATE_DEFAULT, PackageManager.DONT_KILL_APP)
-}
-
 fun Context.checkAssistantAndNotify(state: AssistantState = assistantState()) {
     val manager = getSystemService(NotificationManager::class.java)
     if (state == AssistantState.OK) {
@@ -90,7 +80,10 @@ fun Context.checkAssistantAndNotify(state: AssistantState = assistantState()) {
     val notStarted = state == AssistantState.NOT_STARTED
     val title = getString(if (notStarted) R.string.assistant_check_title_not_started else R.string.assistant_check_title)
     val text = getString(if (notStarted) R.string.assistant_check_text_not_started else R.string.assistant_check_text)
-    if (!manager.areNotificationsEnabled()) return
+    if (!manager.areNotificationsEnabled()) {
+        logEvent("Reminder not shown: notifications are off for the app")
+        return
+    }
 
     manager.createNotificationChannel(
         NotificationChannel(CHANNEL_ID, getString(R.string.assistant_check_channel), NotificationManager.IMPORTANCE_DEFAULT)
@@ -109,6 +102,7 @@ fun Context.checkAssistantAndNotify(state: AssistantState = assistantState()) {
         .setAutoCancel(true)
         .build()
     manager.notify(NOTIFICATION_ID, notification)
+    logEvent("Reminder shown: assistant $state")
 }
 
 fun Context.cancelAssistantNotification() {
