@@ -6,25 +6,20 @@ import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.os.UserManager
 import de.paradox.screenshotassistant.util.logEvent
 
 private const val MAX_WAIT_MS = 8_000L
 private const val POLL_MS = 1_000L
 
-// A short check after boot or an app update: wait a few seconds for Android to start the assistant, then remind once
-// if it did not. The wait stays well inside Android's time limit for broadcasts, so the app is not killed before it
-// can post the reminder. If the service starts later after all, it removes the reminder itself.
+// A short check right after boot or an app update: wait a few seconds for Android to start the assistant, then remind
+// once if it did not. It runs on the early boot broadcast, before the first unlock, because Android can deliver the
+// later BOOT_COMPLETED many minutes late, and after a system update it may not arrive in time at all.
+// If the service starts later after all, it removes the reminder itself.
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action ?: return
         val app = context.applicationContext
-        if (action == Intent.ACTION_LOCKED_BOOT_COMPLETED) {
-            app.logEvent("$action: ${app.assistantDiagnosis()}")
-            return
-        }
-        if (action != Intent.ACTION_BOOT_COMPLETED && action != Intent.ACTION_MY_PACKAGE_REPLACED) return
-        if (!app.getSystemService(UserManager::class.java).isUserUnlocked) return
+        if (action != Intent.ACTION_LOCKED_BOOT_COMPLETED && action != Intent.ACTION_MY_PACKAGE_REPLACED) return
         app.logEvent("$action received: ${app.assistantDiagnosis()}")
         val pending = goAsync()
         val handler = Handler(Looper.getMainLooper())
