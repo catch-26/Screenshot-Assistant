@@ -1,3 +1,10 @@
+# v26.11.8 (2026-11-16)
+
+- Assistant: it starts again after a phone restart or an app update, also before the first unlock.
+- Assistant: if Android does not start it after a restart, a reminder appears within seconds. Tapping it opens the digital assistant settings, and the app screen says to select Screenshot Assistant there again.
+- Assistant: the reminder only appears if Screenshot Assistant was the selected assistant before the restart, and it disappears by itself once the assistant starts.
+- Show logs: the app's own assistant event log is shown above the system log.
+
 # v26.11.0 (2026-11-07)
 
 - Editor: the screenshot appears once it has loaded, so the first crop view no longer stays empty.
