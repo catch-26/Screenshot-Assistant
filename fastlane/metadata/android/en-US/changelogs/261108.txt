@@ -1,0 +1,4 @@
+- The assistant starts again after a restart or an app update.
+- If Android does not start it, a reminder appears within seconds; tap it to open the assistant settings.
+- The reminder only appears if the app was the assistant before the restart.
+- Show logs includes the app's assistant event log.
