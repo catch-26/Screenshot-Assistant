@@ -1,0 +1,2 @@
+- Bump Android Gradle Plugin from 9.5.0 to 9.5.1.
+- Bump Gradle wrapper from 9.8.2 to 9.9.1.

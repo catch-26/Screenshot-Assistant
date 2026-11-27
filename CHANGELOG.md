@@ -1,3 +1,8 @@
+# v26.11.9 (2026-11-27)
+
+- Bump Android Gradle Plugin from 9.5.0 to 9.5.1.
+- Bump Gradle wrapper from 9.8.2 to 9.9.1.
+
 # v26.11.8 (2026-11-16)
 
 - Assistant: it starts again after a phone restart or an app update, also before the first unlock.
